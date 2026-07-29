@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내 수업 | 글로벌한국어나눔</title>
+<meta name="robots" content="noindex">
+<meta property="og:title" content="내 수업 | 글로벌한국어나눔">
+<meta property="og:description" content="전화번호를 넣으면 오늘 수업으로 바로 들어갑니다.">
+<meta property="og:url" content="https://gks-site-fie.pages.dev/portal.html">
+<meta property="og:image" content="https://gks-site-fie.pages.dev/og-image.png">
+<link rel="icon" href="/favicon-32.png" sizes="32x32">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================
+   ★ 딱 한 줄만 바꾸면 됩니다 — Apps Script 배포 후 나온 /exec 주소
+   =================================================================== */
+</style>
+<script>
+  var GAS_URL = "https://script.google.com/macros/s/AKfycbzpMqEeFYNblAFvEfPxXx1xJ471nmD2pPdraSv2qxKFdc4VR6LlasazexG1NWl-QfjdQg/exec";
+</script>
+<style>
+:root{
+  --blue:#4472C4; --blue-d:#37589f; --orange:#ED7D31;
+  --navy:#2e4d8f; --ink:#2e4d8f; --body:#3d5680; --muted:#7288ab;
+  --bg:#f8fafd; --bg2:#eef3fa; --line:#dbe7f8; --white:#fff;
+  --ok:#2e7d5b; --warn:#b4611b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--body);
+  font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+  font-size:16px; line-height:1.65; word-break:keep-all;
+  padding-bottom:48px;
+}
+h1,h2,h3{font-family:'Gowun Batang','Noto Sans KR',serif; color:var(--ink); margin:0; font-weight:700}
+a{color:var(--blue-d)}
+
+/* ---------- 헤더 : 로고 왼쪽 고정 / 언어 오른쪽 고정 ---------- */
+.top{
+  background:var(--white); border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:20;
+}
+.top-in{
+  max-width:560px; margin:0 auto; padding:12px 18px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; flex:0 0 auto}
+.brand-mark{height:38px; width:auto; display:block}
+.brand-word{
+  font-family:'Gowun Batang',serif; color:var(--navy); font-size:1.06rem;
+  font-weight:700; letter-spacing:-.02em; line-height:1.2;
+}
+.brand-word b{color:var(--orange); font-weight:700}
+.brand-en{
+  display:block; font-family:'Noto Sans KR',sans-serif; font-weight:500;
+  font-size:.56rem; letter-spacing:2px; color:var(--muted);
+}
+@media (max-width:400px){ .brand-mark{height:32px} .brand-word{font-size:.96rem} }
+.langs{display:flex; gap:0; flex:0 0 auto; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+.langs button{
+  border:0; background:var(--white); color:var(--muted);
+  font-family:inherit; font-size:.72rem; padding:5px 11px; cursor:pointer;
+}
+.langs button.on{background:#dbe7f8; color:var(--ink); font-weight:700}
+
+/* ---------- 공통 ---------- */
+.wrap{max-width:560px; margin:0 auto; padding:22px 18px 0}
+.card{
+  background:var(--white); border:1px solid var(--line); border-radius:18px;
+  padding:22px; margin-bottom:16px;
+}
+.eyebrow{
+  font-size:.72rem; letter-spacing:.14em; color:var(--orange);
+  font-weight:700; text-transform:uppercase; margin-bottom:8px;
+}
+.lead{margin:.5rem 0 0; color:var(--body)}
+.muted{color:var(--muted); font-size:.88rem}
+.center{text-align:center}
+.hr{height:1px; background:var(--line); border:0; margin:18px 0}
+
+input[type=tel],input[type=text],textarea{
+  width:100%; border:1px solid var(--line); border-radius:12px;
+  padding:14px 15px; font-size:1.05rem; font-family:inherit; color:var(--ink);
+  background:var(--bg); outline:none;
+}
+input:focus,textarea:focus{border-color:var(--blue); background:var(--white)}
+input::placeholder,textarea::placeholder{color:#a9bcd6}
+textarea{font-size:.98rem; min-height:84px; resize:vertical}
+
+.btn{
+  display:block; width:100%; border:0; border-radius:999px;
+  padding:15px 18px; font-size:1.02rem; font-family:inherit; font-weight:700;
+  background:linear-gradient(135deg,var(--blue),var(--blue-d)); color:#fff;
+  cursor:pointer; margin-top:14px;
+}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.55; cursor:default}
+.btn.ghost{background:var(--white); color:var(--blue-d); border:1px solid var(--line); font-weight:500}
+.btn.orange{background:linear-gradient(135deg,#f0904a,var(--orange))}
+.btn.sm{padding:11px 16px; font-size:.92rem; margin-top:10px}
+
+.msg{border-radius:12px; padding:12px 14px; font-size:.92rem; margin-top:14px; display:none}
+.msg.show{display:block}
+.msg.err{background:#fdf0ea; color:#a8511b; border:1px solid #f4d3bf}
+.msg.ok{background:#eaf5ee; color:var(--ok); border:1px solid #cfe6d8}
+
+/* ---------- 짝 카드 ---------- */
+.pair{
+  border:1px solid var(--line); border-radius:16px; padding:16px 16px 18px;
+  margin-top:14px; background:var(--bg);
+}
+.pair h3{font-size:1.12rem; display:flex; align-items:center; gap:8px}
+.tag{
+  font-size:.68rem; font-family:'Noto Sans KR',sans-serif; font-weight:700;
+  background:#dbe7f8; color:var(--blue-d); padding:3px 9px; border-radius:999px; letter-spacing:.02em;
+}
+.steps{margin:12px 0 0; padding:0; list-style:none; counter-reset:s}
+.steps li{
+  counter-increment:s; position:relative; padding:6px 0 6px 34px; font-size:.94rem;
+}
+.steps li::before{
+  counter-increment:none; content:counter(s);
+  position:absolute; left:0; top:6px; width:24px; height:24px; border-radius:50%;
+  background:var(--blue); color:#fff; font-size:.76rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.linkbox{
+  background:var(--bg2); border-radius:10px; padding:11px 13px; margin-top:12px;
+  font-size:.9rem; color:var(--blue-d); word-break:break-all;
+}
+.note{
+  background:#fff6ef; border:1px solid #f6dcc6; border-radius:12px;
+  padding:12px 14px; font-size:.88rem; color:var(--warn); margin-top:14px;
+}
+.foot{max-width:560px; margin:26px auto 0; padding:0 18px; text-align:center}
+.foot small{color:var(--muted); font-size:.78rem}
+.hidden{display:none !important}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (max-width:420px){ .card{padding:19px 17px} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="index.html" aria-label="글로벌한국어나눔 홈">
+      <img class="brand-mark" src="favicon-192.png" alt="">
+      <span class="brand-word">글로벌<b>한국어</b>나눔<span class="brand-en">GLOBAL KOREAN SHARING</span></span>
+    </a>
+    <div class="langs" role="group" aria-label="Language">
+      <button id="btnKo" class="on" onclick="setLang('ko')">한국어</button>
+      <button id="btnEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ========== 1. 로그인 ========== -->
+  <section id="viewLogin" class="card">
+    <div class="eyebrow" data-i18n="loginEyebrow">내 수업 · MY CLASS</div>
+    <h1 style="font-size:1.5rem" data-i18n="loginTitle">오늘 수업으로 들어가기</h1>
+    <p class="lead" data-i18n="loginLead">등록하실 때 알려주신 전화번호를 넣어 주세요.</p>
+
+    <form onsubmit="doLogin(event)" style="margin-top:18px">
+      <input id="phone" type="tel" inputmode="numeric" autocomplete="tel"
+             placeholder="010-1234-5678" data-i18n-ph="phonePh">
+      <button class="btn" id="btnLogin" type="submit" data-i18n="loginBtn">들어가기</button>
+    </form>
+    <div id="loginMsg" class="msg err"></div>
+    <hr class="hr">
+    <p class="muted" style="margin:0 0 4px" data-i18n="firstQ">처음 들어오시나요? 번호가 아직 등록되지 않았을 수 있어요.</p>
+    <button class="btn ghost sm" onclick="openClaim()" data-i18n="firstBtn">이름으로 번호 등록하기</button>
+  </section>
+
+  <!-- ========== 1-2. 첫 등록 (이름으로 내 번호 채우기) ========== -->
+  <section id="viewClaim" class="card hidden">
+    <div class="eyebrow" data-i18n="claimEyebrow">처음 한 번 · FIRST TIME</div>
+    <h1 style="font-size:1.4rem" data-i18n="claimTitle">이름으로 번호 등록하기</h1>
+    <p class="lead" data-i18n="claimLead">
+      명단에 있는 이름 그대로 넣어 주세요. 찾으면 번호가 등록되고 바로 들어갑니다.
+    </p>
+
+    <form onsubmit="doClaim(event)" style="margin-top:18px">
+      <input id="claimName" type="text" autocomplete="name" placeholder="이름 (예: 김선영)" data-i18n-ph="claimNamePh">
+      <div style="height:10px"></div>
+      <input id="claimPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-1234-5678" data-i18n-ph="phonePh">
+      <button class="btn" id="btnClaim" type="submit" data-i18n="claimBtn">등록하고 들어가기</button>
+      <button class="btn ghost sm" type="button" onclick="show('viewLogin')" data-i18n="claimBack">뒤로</button>
+    </form>
+    <div id="claimMsg" class="msg err"></div>
+  </section>
+
+  <!-- ========== 2. 미트링크 등록 (선생님 · 아직 없을 때) ========== -->
+  <section id="viewSetLink" class="card hidden">
+    <div class="eyebrow" data-i18n="setEyebrow">첫 준비 · ONE-TIME SETUP</div>
+    <h2 style="font-size:1.32rem" data-i18n="setTitle">내 수업방 주소 만들기</h2>
+    <p class="lead" data-i18n="setLead">
+      한 번만 만들어 두면 계속 같은 주소로 수업합니다. 학생이 바뀌어도 그대로 쓰세요.
+    </p>
+
+    <ol class="steps">
+      <li data-i18n="setStep1"><b>meet.google.com</b> 에 들어갑니다 (내 구글 계정으로 로그인된 상태에서).</li>
+      <li data-i18n="setStep2"><b>새 회의 → 나중에 사용할 회의 만들기</b> 를 누릅니다.</li>
+      <li data-i18n="setStep3">화면에 나온 주소를 복사해서 아래 칸에 붙여 넣습니다.</li>
+    </ol>
+
+    <div style="margin-top:16px">
+      <input id="meetInput" type="text" placeholder="https://meet.google.com/abc-defg-hij" data-i18n-ph="setPh">
+      <button class="btn" id="btnSaveLink" onclick="saveLink()" data-i18n="setBtn">저장하기</button>
+      <button class="btn ghost sm" onclick="skipSetLink()" data-i18n="setSkip">나중에 하기</button>
+    </div>
+    <div id="setMsg" class="msg err"></div>
+  </section>
+
+  <!-- ========== 3. 내 수업 ========== -->
+  <section id="viewHome" class="hidden">
+    <div class="card">
+      <div class="eyebrow" data-i18n="homeEyebrow">내 수업 · MY CLASS</div>
+      <h2 id="hello" style="font-size:1.42rem">—</h2>
+      <p class="muted" id="myMeet" style="margin:.45rem 0 0"></p>
+      <div id="pairs"></div>
+      <div id="noPair" class="note hidden" data-i18n="noPair">
+        아직 짝이 배정되지 않았어요. 배정되면 이 화면에 바로 보입니다.
+      </div>
+      <div id="homeMsg" class="msg ok"></div>
+    </div>
+
+    <!-- 수업 완료 -->
+    <div class="card" id="doneCard">
+      <div class="eyebrow" data-i18n="doneEyebrow">수업 후 · AFTER CLASS</div>
+      <h2 style="font-size:1.18rem" data-i18n="doneTitle">오늘 어디까지 했는지 한 줄만</h2>
+      <p class="muted" style="margin:.4rem 0 12px" data-i18n="doneLead">
+        기록이 쌓이면 봉사시간 근거와 월간리포트가 자동으로 만들어집니다.
+      </p>
+      <textarea id="memo" placeholder="예) 1과 인사말 끝냄. 다음에 숫자 읽기." data-i18n-ph="donePh"></textarea>
+      <button class="btn orange" id="btnDone" onclick="markDone()" data-i18n="doneBtn">수업 완료</button>
+      <div id="doneMsg" class="msg ok"></div>
+    </div>
+
+    <button class="btn ghost sm" style="margin-bottom:8px" onclick="logout()" data-i18n="logout">다른 번호로 들어가기</button>
+    <button class="btn ghost sm hidden" onclick="openSetLink()" id="btnEditLink" data-i18n="editLink">내 수업방 주소 바꾸기</button>
+  </section>
+
+</main>
+
+<div class="foot">
+  <small data-i18n="foot">글로벌한국어나눔 · 한국에서 공부하는 유학생을 위한 무료 1:1 한국어 튜터링</small>
+</div>
+
+<script>
+/* ================= i18n ================= */
+var I18N = {
+  brand:{ko:'글로벌한국어나눔', en:'Global Korean Sharing'},
+  loginEyebrow:{ko:'내 수업 · MY CLASS', en:'MY CLASS'},
+  loginTitle:{ko:'오늘 수업으로 들어가기', en:'Enter today’s class'},
+  loginLead:{ko:'등록하실 때 알려주신 전화번호를 넣어 주세요.', en:'Enter the phone number you registered with.'},
+  phonePh:{ko:'010-1234-5678', en:'010-1234-5678'},
+  loginBtn:{ko:'들어가기', en:'Enter'},
+  loginHelp:{ko:'번호가 안 맞으면 담당자에게 알려 주세요. 시트에 적힌 번호와 달라서 그럴 수 있어요.',
+             en:'If it doesn’t work, please tell your coordinator — the number on file may be different.'},
+  firstQ:{ko:'처음 들어오시나요? 번호가 아직 등록되지 않았을 수 있어요.',
+          en:'First time here? Your number may not be registered yet.'},
+  firstBtn:{ko:'이름으로 번호 등록하기', en:'Register with my name'},
+  claimEyebrow:{ko:'처음 한 번 · FIRST TIME', en:'FIRST TIME'},
+  claimTitle:{ko:'이름으로 번호 등록하기', en:'Register your number'},
+  claimLead:{ko:'명단에 있는 이름 그대로 넣어 주세요. 찾으면 번호가 등록되고 바로 들어갑니다.',
+             en:'Type your name exactly as registered. We’ll save your number and let you in.'},
+  claimNamePh:{ko:'이름 (예: 김선영)', en:'Your name'},
+  claimBtn:{ko:'등록하고 들어가기', en:'Register and enter'},
+  claimBack:{ko:'뒤로', en:'Back'},
+  errName:{ko:'그 이름을 명단에서 못 찾았어요. 등록하실 때 쓴 이름 그대로 넣어 주세요.',
+           en:'We couldn’t find that name. Please use the name you registered with.'},
+  errDup:{ko:'같은 이름이 두 분 계세요. 담당자에게 알려 주시면 바로 등록해 드립니다.',
+          en:'Two people share that name. Please contact your coordinator.'},
+  errAlready:{ko:'이 이름에는 이미 다른 번호가 등록돼 있어요. 담당자에게 문의해 주세요.',
+              en:'A different number is already registered for this name. Please contact your coordinator.'},
+  claimedOk:{ko:'번호를 등록했습니다. 다음부터는 번호만 넣으면 됩니다.',
+             en:'Your number is saved. Next time just enter your phone number.'},
+
+  setEyebrow:{ko:'첫 준비 · ONE-TIME SETUP', en:'ONE-TIME SETUP'},
+  setTitle:{ko:'내 수업방 주소 만들기', en:'Create your class room link'},
+  setLead:{ko:'한 번만 만들어 두면 계속 같은 주소로 수업합니다. 학생이 바뀌어도 그대로 쓰세요.',
+           en:'Make it once and keep using the same link, even when your student changes.'},
+  setStep1:{ko:'<b>meet.google.com</b> 에 들어갑니다 (내 구글 계정으로 로그인된 상태에서).',
+            en:'Go to <b>meet.google.com</b>, signed in with your Google account.'},
+  setStep2:{ko:'<b>새 회의 → 나중에 사용할 회의 만들기</b> 를 누릅니다.',
+            en:'Click <b>New meeting → Create a meeting for later</b>.'},
+  setStep3:{ko:'화면에 나온 주소를 복사해서 아래 칸에 붙여 넣습니다.',
+            en:'Copy the link that appears and paste it below.'},
+  setPh:{ko:'https://meet.google.com/abc-defg-hij', en:'https://meet.google.com/abc-defg-hij'},
+  setBtn:{ko:'저장하기', en:'Save'},
+  setSkip:{ko:'나중에 하기', en:'Later'},
+
+  homeEyebrow:{ko:'내 수업 · MY CLASS', en:'MY CLASS'},
+  noPair:{ko:'아직 짝이 배정되지 않았어요. 배정되면 이 화면에 바로 보입니다.',
+          en:'You have not been matched yet. Your match will appear here.'},
+  doneEyebrow:{ko:'수업 후 · AFTER CLASS', en:'AFTER CLASS'},
+  doneTitle:{ko:'오늘 어디까지 했는지 한 줄만', en:'One line about today'},
+  doneLead:{ko:'기록이 쌓이면 봉사시간 근거와 월간리포트가 자동으로 만들어집니다.',
+            en:'These notes build your volunteer records and monthly report.'},
+  donePh:{ko:'예) 1과 인사말 끝냄. 다음에 숫자 읽기.', en:'e.g. Finished Lesson 1 greetings. Numbers next time.'},
+  doneBtn:{ko:'수업 완료', en:'Class done'},
+  logout:{ko:'다른 번호로 들어가기', en:'Use another number'},
+  editLink:{ko:'내 수업방 주소 바꾸기', en:'Change my room link'},
+  foot:{ko:'글로벌한국어나눔 · 한국에서 공부하는 유학생을 위한 무료 1:1 한국어 튜터링',
+        en:'Global Korean Sharing · Free 1:1 Korean tutoring for international students in Korea'},
+
+  enter:{ko:'수업 입장', en:'Enter class'},
+  waitLink:{ko:'수업방을 준비하고 있습니다. 준비되면 여기에 [수업 입장] 버튼이 생깁니다.',
+            en:'Your class room is being prepared. The [Enter class] button will appear here once it’s ready.'},
+  helloT:{ko:'{n} 선생님', en:'{n}'},
+  helloS:{ko:'{n} 님', en:'{n}'},
+  myRoom:{ko:'내 수업방 · ', en:'My room · '},
+  errNotFound:{ko:'그 번호로 등록된 분을 못 찾았어요. 번호를 다시 확인해 주세요.',
+               en:'We couldn’t find that number. Please check and try again.'},
+  errEmpty:{ko:'전화번호를 정확히 넣어 주세요.', en:'Please enter your full phone number.'},
+  errNet:{ko:'연결이 잘 안 됐어요. 잠시 후 다시 눌러 주세요.', en:'Connection failed. Please try again.'},
+  errLink:{ko:'구글 미트 주소만 저장할 수 있어요. meet.google.com 으로 시작하는 주소를 붙여 넣어 주세요.',
+           en:'Please paste a Google Meet link (meet.google.com/...).'},
+  savedLink:{ko:'저장했습니다. 이제 이 주소로 수업하시면 됩니다.', en:'Saved. This is now your class room.'},
+  enterOk:{ko:'수업방을 열었습니다. 창이 안 열렸으면 아래 주소를 눌러 주세요.',
+           en:'Opening your room. If nothing opened, tap the link below.'},
+  doneOk:{ko:'기록했습니다. 수고하셨습니다.', en:'Saved. Thank you!'},
+  doneNeed:{ko:'한 줄만 적어 주세요.', en:'Please write one line first.'},
+  loading:{ko:'확인 중', en:'Checking'}
+};
+var LANG = 'ko';
+
+function t(k){ var e=I18N[k]; return e ? (e[LANG]||e.ko) : k; }
+
+function setLang(l){
+  LANG = l;
+  document.documentElement.lang = (l==='ko'?'ko':'en');
+  document.getElementById('btnKo').classList.toggle('on', l==='ko');
+  document.getElementById('btnEn').classList.toggle('on', l==='en');
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n')];
+    if(v) el.innerHTML = v[l]||v.ko;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n-ph')];
+    if(v) el.placeholder = v[l]||v.ko;
+  });
+  try{ localStorage.setItem('gks_lang', l); }catch(e){}
+  if (ME) renderHome();
+}
+
+/* ================= GAS 통신 (JSONP) ================= */
+function api(params){
+  return new Promise(function(resolve, reject){
+    if(!GAS_URL || GAS_URL.indexOf('여기에')===0){ reject(new Error('NO_URL')); return; }
+    var cb = 'gkscb_' + Math.random().toString(36).slice(2);
+    var s = document.createElement('script');
+    var done = false;
+    function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); }
+    window[cb] = function(data){ done=true; cleanup(); resolve(data); };
+    params.callback = cb;
+    var q = Object.keys(params).map(function(k){
+      return encodeURIComponent(k)+'='+encodeURIComponent(params[k]==null?'':params[k]);
+    }).join('&');
+    s.src = GAS_URL + (GAS_URL.indexOf('?')>=0?'&':'?') + q;
+    s.onerror = function(){ if(!done){ cleanup(); reject(new Error('NET')); } };
+    document.body.appendChild(s);
+    setTimeout(function(){ if(!done){ cleanup(); reject(new Error('TIMEOUT')); } }, 20000);
+  });
+}
+
+/* ================= 상태 ================= */
+var PHONE = '';
+var ME = null;
+
+function show(id){
+  ['viewLogin','viewClaim','viewSetLink','viewHome'].forEach(function(v){
+    document.getElementById(v).classList.toggle('hidden', v!==id);
+  });
+  window.scrollTo(0,0);
+}
+function msg(id, text, kind){
+  var el = document.getElementById(id);
+  el.className = 'msg ' + (kind||'err') + (text?' show':'');
+  el.innerHTML = text||'';
+}
+function busy(btnId, on, label){
+  var b = document.getElementById(btnId);
+  if(!b) return;
+  if(on){
+    if(!b.getAttribute('data-label')) b.setAttribute('data-label', b.innerHTML);
+    b.disabled = true;
+    b.innerHTML = '<span class="spin"></span>'+t('loading');
+  } else {
+    b.disabled = false;
+    b.innerHTML = label || b.getAttribute('data-label') || '';
+  }
+}
+
+/* ================= 로그인 ================= */
+function doLogin(ev){
+  if(ev) ev.preventDefault();
+  var raw = document.getElementById('phone').value;
+  var digits = String(raw||'').replace(/\D/g,'');
+  msg('loginMsg','');
+  if(digits.length < 8){ msg('loginMsg', t('errEmpty')); return; }
+
+  var label = t('loginBtn');
+  busy('btnLogin', true);
+  api({action:'login', phone:digits}).then(function(r){
+    busy('btnLogin', false, label);
+    if(!r || !r.ok){
+      msg('loginMsg', r && r.error==='EMPTY' ? t('errEmpty') : t('errNotFound'));
+      return;
+    }
+    PHONE = digits; ME = r.me;
+    try{ localStorage.setItem('gks_phone', digits); }catch(e){}
+    afterLogin();
+  }).catch(function(e){
+    busy('btnLogin', false, label);
+    msg('loginMsg', e.message==='NO_URL' ? 'GAS_URL이 아직 비어 있습니다 (관리자 설정 필요).' : t('errNet'));
+  });
+}
+
+/* ---- 첫 등록 : 이름으로 내 번호 채우기 ---- */
+function openClaim(){
+  document.getElementById('claimPhone').value = document.getElementById('phone').value;
+  msg('claimMsg','');
+  show('viewClaim');
+}
+
+function doClaim(ev){
+  if(ev) ev.preventDefault();
+  var name = document.getElementById('claimName').value.trim();
+  var digits = String(document.getElementById('claimPhone').value||'').replace(/\D/g,'');
+  msg('claimMsg','');
+  if(!name){ msg('claimMsg', t('errName')); return; }
+  if(digits.length < 10){ msg('claimMsg', t('errEmpty')); return; }
+
+  var label = t('claimBtn');
+  busy('btnClaim', true);
+  api({action:'claim', name:name, phone:digits}).then(function(r){
+    busy('btnClaim', false, label);
+    if(!r || !r.ok){
+      var e = r && r.error;
+      msg('claimMsg', e==='DUPLICATE' ? t('errDup')
+                    : e==='ALREADY_SET' ? t('errAlready')
+                    : e==='EMPTY' ? t('errEmpty') : t('errName'));
+      return;
+    }
+    PHONE = digits; ME = r.me;
+    try{ localStorage.setItem('gks_phone', digits); }catch(e){}
+    afterLogin();
+    msg('homeMsg', t('claimedOk'), 'ok');
+  }).catch(function(){
+    busy('btnClaim', false, label);
+    msg('claimMsg', t('errNet'));
+  });
+}
+
+function afterLogin(){
+  /* 수업방은 담당자가 미리 만들어 둡니다 — 선생님께 만들라고 하지 않습니다 */
+  renderHome(); show('viewHome');
+}
+
+function logout(){
+  PHONE=''; ME=null;
+  try{ localStorage.removeItem('gks_phone'); }catch(e){}
+  document.getElementById('phone').value='';
+  msg('loginMsg',''); show('viewLogin');
+}
+
+/* ================= 미트링크 등록 ================= */
+function openSetLink(){
+  document.getElementById('meetInput').value = (ME && ME.meet) || '';
+  msg('setMsg','');
+  show('viewSetLink');
+}
+function skipSetLink(){ renderHome(); show('viewHome'); }
+
+function saveLink(){
+  var v = document.getElementById('meetInput').value.trim();
+  msg('setMsg','');
+  if(!/meet\.google\.com\/[a-z0-9\-]{6,}/i.test(v)){ msg('setMsg', t('errLink')); return; }
+  var label = t('setBtn');
+  busy('btnSaveLink', true);
+  api({action:'savelink', phone:PHONE, link:v}).then(function(r){
+    busy('btnSaveLink', false, label);
+    if(!r || !r.ok){ msg('setMsg', r && r.error==='BAD_LINK' ? t('errLink') : t('errNet')); return; }
+    ME = r.me;
+    renderHome(); show('viewHome');
+    msg('homeMsg', t('savedLink'), 'ok');
+  }).catch(function(){
+    busy('btnSaveLink', false, label);
+    msg('setMsg', t('errNet'));
+  });
+}
+
+/* ================= 내 수업 화면 ================= */
+function renderHome(){
+  if(!ME) return;
+  var isT = ME.role==='teacher';
+  document.getElementById('hello').textContent =
+    t(isT?'helloT':'helloS').replace('{n}', ME.name||'');
+
+  var mm = document.getElementById('myMeet');
+  if(isT && ME.meet){ mm.textContent = t('myRoom') + ME.meet.replace(/^https?:\/\//,''); }
+  else { mm.textContent = ''; }
+
+  var box = document.getElementById('pairs');
+  box.innerHTML = '';
+  var list = (ME.partners||[]);
+  document.getElementById('noPair').classList.toggle('hidden', list.length>0);
+  document.getElementById('doneCard').classList.toggle('hidden', list.length===0);
+
+  list.forEach(function(p, i){
+    var link = p.meet || (isT ? ME.meet : '');
+    var div = document.createElement('div');
+    div.className = 'pair';
+    var tag = isT ? (LANG==='ko'?'학생':'Student') : (LANG==='ko'?'선생님':'Teacher');
+    var html = '<h3>'+esc(p.name)+' <span class="tag">'+tag+'</span></h3>';
+    if(p.start) html += '<p class="muted" style="margin:.25rem 0 0">'+(LANG==='ko'?'시작 ':'since ')+esc(p.start)+'</p>';
+    if(link){
+      html += '<button class="btn" onclick="enterClass('+i+')">'+t('enter')+'</button>';
+      html += '<div class="linkbox"><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(link.replace(/^https?:\/\//,''))+'</a></div>';
+    } else {
+      html += '<div class="note">'+t('waitLink')+'</div>';
+    }
+    div.innerHTML = html;
+    box.appendChild(div);
+  });
+}
+
+function enterClass(i){
+  var p = (ME.partners||[])[i]; if(!p) return;
+  var link = p.meet || (ME.role==='teacher' ? ME.meet : '');
+  if(!link) return;
+  /* 먼저 연다 — 기록이 실패해도 수업은 시작되어야 하므로 */
+  window.open(link, '_blank', 'noopener');
+  msg('homeMsg', t('enterOk'), 'ok');
+  api({action:'enter', phone:PHONE, partner:p.name, link:link}).catch(function(){});
+}
+
+function markDone(){
+  var memo = document.getElementById('memo').value.trim();
+  msg('doneMsg','');
+  if(!memo){ msg('doneMsg', t('doneNeed'), 'err'); return; }
+  var partner = ((ME.partners||[])[0]||{}).name||'';
+  var label = t('doneBtn');
+  busy('btnDone', true);
+  api({action:'done', phone:PHONE, partner:partner, memo:memo}).then(function(r){
+    busy('btnDone', false, label);
+    if(r && r.ok){
+      document.getElementById('memo').value='';
+      msg('doneMsg', t('doneOk'), 'ok');
+    } else { msg('doneMsg', t('errNet'), 'err'); }
+  }).catch(function(){
+    busy('btnDone', false, label);
+    msg('doneMsg', t('errNet'), 'err');
+  });
+}
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+/* ================= 시작 ================= */
+(function init(){
+  var l='ko';
+  try{
+    var stored = localStorage.getItem('gks_lang');
+    l = stored ? stored : (((navigator.language||'ko').slice(0,2)==='ko') ? 'ko' : 'en');
+  }catch(e){}
+  setLang(l==='en'?'en':'ko');
+
+  var saved='';
+  try{ saved = localStorage.getItem('gks_phone')||''; }catch(e){}
+  if(saved){
+    document.getElementById('phone').value = saved;
+    PHONE = saved;
+    api({action:'login', phone:saved}).then(function(r){
+      if(r && r.ok){ ME=r.me; afterLogin(); }
+    }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
