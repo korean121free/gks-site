@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GKS 한국어 레벨테스트 | Korean Level Test</title>
+<meta name="description" content="글로벌한국어나눔(GKS) 한국어 레벨테스트 — 15문항으로 나의 한국어 수준을 확인해 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GKS 한국어 레벨테스트">
+<meta property="og:description" content="15문항, 약 10분. 나의 한국어 수준을 확인해 보세요.">
+<meta property="og:url" content="https://gks-site-fie.pages.dev/level.html">
+<meta property="og:image" content="https://gks-site-fie.pages.dev/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   GKS 한국어 레벨테스트  ·  단일 파일
+   브랜드: 파랑 #4472C4 / 주황 #ED7D31 (GKS 로고 실측값)
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --blue:#4472C4;
+  --blue-d:#35589e;
+  --orange:#ED7D31;
+  --orange-d:#d2681f;
+  --ink:#2e4d8f;
+  --body:#3d5680;
+  --muted:#7e93b8;
+  --bg:#f8fafd;
+  --bg2:#eef3fa;
+  --line:#dbe7f8;
+  --card:#ffffff;
+  --ok:#2f9e6e;
+  --no:#d9534f;
+  --shadow:0 2px 10px rgba(46,77,143,.06), 0 12px 34px rgba(46,77,143,.08);
+  --radius:18px;
+}
+
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+  color:var(--body);
+  background:var(--bg);
+  background-image:radial-gradient(1100px 520px at 50% -8%, #e7effb 0%, rgba(231,239,251,0) 68%);
+  line-height:1.68;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+  -webkit-font-smoothing:antialiased;
+  min-height:100dvh;
+}
+.serif{font-family:'Gowun Batang','Noto Sans KR',serif}
+
+/* ---------- 레이아웃 ---------- */
+.wrap{
+  max-width:600px;
+  margin:0 auto;
+  padding:0 18px calc(40px + env(safe-area-inset-bottom));
+  position:relative;
+}
+
+.wrap > *{position:relative;z-index:1}
+
+/* 히어로 한글 장식 (gks-site 히어로와 같은 결) */
+.hero-deco{
+  position:absolute;
+  top:-26px; right:-16px;
+  font-family:'Gowun Batang',serif;
+  font-size:172px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:.02em;
+  color:var(--blue);
+  opacity:.045;
+  pointer-events:none;
+  user-select:none;
+  white-space:nowrap;
+  z-index:0;
+}
+.card.hero{position:relative;overflow:hidden}
+.card.hero > *:not(.hero-deco){position:relative;z-index:1}
+
+/* ---------- 헤더 ---------- */
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:20px 0 14px;
+}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brand-mark{
+  width:32px;height:32px;flex:none;
+  border-radius:9px;
+  background:linear-gradient(135deg,var(--blue) 0%,var(--blue-d) 100%);
+  color:#fff;
+  font-family:'Gowun Batang',serif;
+  font-weight:700;
+  font-size:17px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(68,114,196,.32);
+}
+.brand-name{
+  font-size:.86rem;font-weight:700;color:var(--ink);
+  letter-spacing:-.01em;white-space:nowrap;
+}
+.brand-sub{display:block;font-size:.62rem;font-weight:400;color:var(--muted);letter-spacing:.06em}
+
+.langs{display:flex;flex:none;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}
+.langs button{
+  font-family:inherit;font-size:.71rem;font-weight:500;
+  padding:6px 12px;border:0;background:transparent;color:var(--muted);
+  cursor:pointer;transition:.18s;
+}
+.langs button.on{background:#dbe7f8;color:var(--ink);font-weight:700}
+
+/* ---------- 카드 공통 ---------- */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:30px 26px;
+}
+.eyebrow{
+  display:flex;align-items:center;gap:9px;
+  font-size:.7rem;font-weight:700;letter-spacing:.16em;
+  color:var(--orange);text-transform:uppercase;
+  margin-bottom:12px;
+}
+.eyebrow .jamo{
+  font-family:'Gowun Batang',serif;
+  font-size:1.05rem;letter-spacing:0;color:var(--blue);
+  line-height:1;
+}
+h1{
+  font-family:'Gowun Batang',serif;
+  font-size:1.72rem;font-weight:700;color:var(--ink);
+  line-height:1.34;letter-spacing:-.02em;
+  margin-bottom:10px;
+}
+h1 .en{display:block;font-size:.95rem;font-weight:400;color:var(--muted);margin-top:6px;letter-spacing:0}
+.lead{font-size:.95rem;font-weight:300;color:var(--body)}
+
+/* ---------- 안내 목록 ---------- */
+.facts{
+  list-style:none;
+  margin:22px 0 26px;
+  border-top:1px solid var(--line);
+}
+.facts li{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:13px 2px;
+  border-bottom:1px solid var(--line);
+  font-size:.89rem;
+}
+.facts .k{
+  flex:none;width:74px;
+  font-size:.73rem;font-weight:700;color:var(--blue);
+  letter-spacing:.02em;padding-top:2px;
+}
+.facts .v{color:var(--body);font-weight:300}
+.facts .v b{font-weight:500;color:var(--ink)}
+
+/* ---------- 입력 ---------- */
+.field{margin-bottom:20px}
+.field label{
+  display:block;font-size:.76rem;font-weight:700;color:var(--ink);
+  margin-bottom:7px;letter-spacing:.01em;
+}
+.field .hint{font-weight:400;color:var(--muted);font-size:.72rem}
+.field input{
+  width:100%;font-family:inherit;font-size:.95rem;color:var(--ink);
+  padding:13px 15px;border:1px solid var(--line);border-radius:12px;
+  background:var(--bg2);transition:.18s;
+}
+.field input::placeholder{color:#adbdd6}
+.field input:focus{outline:0;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(68,114,196,.13)}
+.field input.phone{
+  max-width:240px;letter-spacing:.06em;font-weight:500;
+  font-variant-numeric:tabular-nums;
+}
+.why{
+  font-size:.74rem;font-weight:300;color:var(--muted);
+  line-height:1.62;white-space:pre-line;
+  margin:-4px 0 20px;padding-left:2px;
+}
+
+/* ---------- 버튼 ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;font-family:inherit;font-size:1rem;font-weight:700;
+  padding:15px 22px;border:0;border-radius:999px;cursor:pointer;
+  transition:.2s;letter-spacing:-.01em;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--blue) 0%,var(--blue-d) 100%);
+  color:#fff;box-shadow:0 5px 16px rgba(68,114,196,.32);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(68,114,196,.38)}
+.btn-primary:disabled{background:#c8d6ec;color:#fff;box-shadow:none;cursor:not-allowed;transform:none}
+.btn-ghost{background:#fff;color:var(--blue);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--bg2)}
+.btn-orange{
+  background:linear-gradient(135deg,var(--orange) 0%,var(--orange-d) 100%);
+  color:#fff;box-shadow:0 5px 16px rgba(237,125,49,.3);
+}
+.btn-row{display:flex;gap:10px;margin-top:22px}
+.btn-row .btn{width:auto;flex:1}
+.btn-row .btn.narrow{flex:0 0 96px;font-size:.86rem;padding:15px 10px}
+
+/* ---------- 진행바 ---------- */
+.progress-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin-bottom:9px;
+}
+.progress-num{
+  font-family:'Gowun Batang',serif;font-size:1.02rem;font-weight:700;color:var(--ink);
+}
+.progress-num i{font-style:normal;color:var(--muted);font-size:.84rem;font-weight:400}
+.progress-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.progress-track{height:6px;border-radius:999px;background:var(--line);overflow:hidden}
+.progress-fill{
+  height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--blue) 0%,var(--orange) 100%);
+  transition:width .34s cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- 문제 ---------- */
+.qcard{margin-top:18px}
+.q-head{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+.q-jamo{
+  display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:34px;height:34px;border-radius:11px;
+  background:var(--bg2);border:1px solid var(--line);
+  font-family:'Gowun Batang',serif;font-size:1.1rem;font-weight:700;color:var(--blue);
+}
+.q-instr{font-size:.76rem;font-weight:400;color:var(--muted);line-height:1.5}
+.q-text{
+  font-size:1.12rem;font-weight:500;color:var(--ink);
+  line-height:1.72;letter-spacing:-.01em;
+  white-space:pre-wrap;
+}
+.q-text.long{font-size:1rem;font-weight:400;line-height:1.86}
+.q-note{
+  font-size:.76rem;color:var(--muted);font-weight:300;
+  margin-top:9px;
+}
+
+.opts{list-style:none;margin-top:20px;display:flex;flex-direction:column;gap:9px}
+.opt{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;
+  border:1.5px solid var(--line);border-radius:14px;
+  background:#fff;cursor:pointer;transition:.16s;
+  font-size:.97rem;color:var(--body);text-align:left;
+  font-family:inherit;width:100%;line-height:1.6;
+}
+.opt:hover{border-color:#b9cef0;background:var(--bg)}
+.opt .no{
+  flex:none;width:24px;height:24px;border-radius:50%;
+  border:1.5px solid var(--line);background:#fff;
+  font-size:.75rem;font-weight:700;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  transition:.16s;margin-top:1px;
+}
+.opt.sel{border-color:var(--blue);background:#f2f7fe;color:var(--ink);font-weight:500}
+.opt.sel .no{background:var(--blue);border-color:var(--blue);color:#fff}
+
+.skip{
+  display:block;width:100%;margin-top:14px;
+  background:none;border:0;font-family:inherit;
+  font-size:.79rem;color:var(--muted);cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+.skip:hover{color:var(--blue)}
+
+/* ---------- 결과 ---------- */
+.result-top{text-align:center;padding:6px 0 4px}
+.result-hello{font-size:.86rem;color:var(--muted);font-weight:300;margin-bottom:14px}
+.result-hello b{color:var(--ink);font-weight:700}
+.result-hello .tag{
+  display:inline-block;margin:0 2px;padding:1px 9px;
+  border-radius:999px;background:var(--bg2);border:1px solid var(--line);
+  font-size:.74rem;font-weight:500;color:var(--blue);
+  letter-spacing:.1em;font-variant-numeric:tabular-nums;
+}
+.score{
+  font-family:'Gowun Batang',serif;
+  font-size:3.7rem;font-weight:700;color:var(--blue);
+  line-height:1;letter-spacing:-.03em;
+}
+.score .of{font-size:1.35rem;color:var(--muted);font-weight:400}
+.score-pct{font-size:.8rem;color:var(--muted);margin-top:8px;letter-spacing:.04em}
+
+.level-badge{
+  display:inline-flex;flex-direction:column;align-items:center;gap:2px;
+  margin:20px auto 0;padding:11px 26px;border-radius:999px;
+  background:linear-gradient(135deg,var(--orange) 0%,var(--orange-d) 100%);
+  color:#fff;box-shadow:0 6px 18px rgba(237,125,49,.3);
+}
+.level-badge .lv{font-family:'Gowun Batang',serif;font-size:1.28rem;font-weight:700;line-height:1.2}
+.level-badge .lv-en{font-size:.66rem;letter-spacing:.12em;opacity:.9;text-transform:uppercase}
+
+.cheer{
+  margin-top:22px;padding:17px 19px;
+  background:var(--bg2);border-radius:14px;
+  font-size:.92rem;font-weight:300;color:var(--body);
+  text-align:center;line-height:1.75;
+}
+
+.capture-note{
+  margin-top:18px;padding:13px 16px;
+  border:1px dashed #c9d9f2;border-radius:12px;
+  font-size:.79rem;color:var(--muted);text-align:center;line-height:1.65;
+}
+
+/* 문항 리뷰 */
+.review-toggle{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;margin-top:18px;padding:11px;
+  background:none;border:0;font-family:inherit;
+  font-size:.82rem;font-weight:500;color:var(--blue);cursor:pointer;
+}
+.review-toggle .arrow{transition:transform .22s;font-size:.7rem}
+.review-toggle.open .arrow{transform:rotate(180deg)}
+.review{display:none;margin-top:6px;border-top:1px solid var(--line)}
+.review.show{display:block}
+.rv{display:flex;gap:11px;padding:12px 2px;border-bottom:1px solid var(--line);font-size:.83rem}
+.rv .rn{
+  flex:none;width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;color:#fff;margin-top:2px;
+}
+.rv.o .rn{background:var(--ok)}
+.rv.x .rn{background:var(--no)}
+.rv .rb{min-width:0;flex:1}
+.rv .rq{color:var(--ink);font-weight:500;line-height:1.55;white-space:pre-wrap}
+.rv .ra{color:var(--muted);font-weight:300;margin-top:3px;font-size:.79rem}
+.rv .ra b{color:var(--ok);font-weight:500}
+.rv .ra s{color:var(--no);text-decoration-thickness:1px;opacity:.8}
+
+/* ---------- 푸터 ---------- */
+footer{
+  text-align:center;padding:26px 6px 0;
+  font-size:.71rem;color:var(--muted);font-weight:300;line-height:1.8;
+}
+footer .sep{color:var(--line);margin:0 7px}
+footer a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line)}
+
+/* ---------- 화면 전환 ---------- */
+.screen{display:none;animation:rise .34s cubic-bezier(.4,0,.2,1)}
+.screen.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+
+/* ---------- 반응형 ---------- */
+@media (max-width:430px){
+  .wrap{padding:0 14px 34px}
+  .card{padding:25px 19px;border-radius:16px}
+  h1{font-size:1.48rem}
+  .q-text{font-size:1.05rem}
+  .opt{font-size:.93rem;padding:13px 14px}
+  .score{font-size:3.2rem}
+  .facts .k{width:64px;font-size:.7rem}
+  .btn{font-size:.95rem;padding:14px 18px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark serif">한</div>
+      <div class="brand-name">
+        글로벌한국어나눔
+        <span class="brand-sub">GLOBAL KOREAN SHARING</span>
+      </div>
+    </div>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" id="btn-ko" class="on" onclick="setLang('ko')">한국어</button>
+      <button type="button" id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+  </header>
+
+  <!-- ===================== 시작 ===================== -->
+  <section class="screen on" id="s-intro">
+    <div class="card hero">
+      <div class="hero-deco" aria-hidden="true">한글</div>
+      <div class="eyebrow"><span class="jamo">ㄱ</span><span data-i18n="eyebrowIntro"></span></div>
+      <h1>
+        <span data-i18n="title"></span>
+        <span class="en" data-i18n="titleEn"></span>
+      </h1>
+      <p class="lead" data-i18n="introLead"></p>
+
+      <ul class="facts">
+        <li><span class="k" data-i18n="factQK"></span><span class="v" data-i18n="factQV"></span></li>
+        <li><span class="k" data-i18n="factTK"></span><span class="v" data-i18n="factTV"></span></li>
+        <li><span class="k" data-i18n="factRK"></span><span class="v" data-i18n="factRV"></span></li>
+      </ul>
+
+      <div class="field">
+        <label for="nameInput">
+          <span data-i18n="nameLabel"></span>
+          <span class="hint" data-i18n="nameHint"></span>
+        </label>
+        <input type="text" id="nameInput" autocomplete="name" maxlength="40" data-i18n-ph="namePh">
+      </div>
+
+      <div class="field">
+        <label for="phoneInput">
+          <span data-i18n="phoneLabel"></span>
+          <span class="hint" data-i18n="phoneHint"></span>
+        </label>
+        <input type="tel" id="phoneInput" class="phone" inputmode="tel" autocomplete="tel" maxlength="20" data-i18n-ph="phonePh">
+      </div>
+
+      <p class="why" data-i18n="whyAsk"></p>
+
+      <button type="button" class="btn btn-primary" id="startBtn" onclick="startTest()" disabled data-i18n="startBtn"></button>
+    </div>
+  </section>
+
+  <!-- ===================== 문제 ===================== -->
+  <section class="screen" id="s-quiz">
+    <div class="progress-head">
+      <span class="progress-num"><span id="curNo">1</span><i> / <span id="totNo">15</span></i></span>
+      <span class="progress-label" data-i18n="progressLabel"></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="bar"></div></div>
+
+    <div class="card qcard">
+      <div class="q-head">
+        <span class="q-jamo serif" id="qJamo">ㄱ</span>
+        <span class="q-instr" data-i18n="qInstr"></span>
+      </div>
+      <p class="q-text" id="qText"></p>
+      <ul class="opts" id="opts"></ul>
+      <button type="button" class="skip" onclick="nextQ(true)" data-i18n="skipBtn"></button>
+    </div>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-ghost narrow" id="prevBtn" onclick="prevQ()" data-i18n="prevBtn"></button>
+      <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextQ(false)" disabled data-i18n="nextBtn"></button>
+    </div>
+  </section>
+
+  <!-- ===================== 결과 ===================== -->
+  <section class="screen" id="s-result">
+    <div class="card">
+      <div class="eyebrow"><span class="jamo">ㅎ</span><span data-i18n="eyebrowResult"></span></div>
+
+      <div class="result-top">
+        <p class="result-hello" id="resultHello"></p>
+        <div class="score serif"><span id="scoreNum">0</span><span class="of"> / <span id="scoreTot">15</span></span></div>
+        <div class="score-pct" id="scorePct"></div>
+        <div class="level-badge">
+          <span class="lv serif" id="levelKo"></span>
+          <span class="lv-en" id="levelEn"></span>
+        </div>
+      </div>
+
+      <p class="cheer" id="cheer"></p>
+
+      <button type="button" class="review-toggle" id="rvToggle" onclick="toggleReview()">
+        <span data-i18n="reviewBtn"></span><span class="arrow">▼</span>
+      </button>
+      <div class="review" id="review"></div>
+
+      <p class="capture-note" data-i18n="captureNote"></p>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn-ghost" onclick="restart()" data-i18n="retryBtn"></button>
+        <button type="button" class="btn btn-orange" onclick="goHome()" data-i18n="homeBtn"></button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span data-i18n="footOrg"></span>
+    <span class="sep">·</span>
+    <a href="https://gks-site-fie.pages.dev" target="_blank" rel="noopener">gks-site-fie.pages.dev</a>
+    <br>
+    <span data-i18n="footNote"></span>
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================================
+   ①  문항 데이터  —  KOREAN LEVEL TEST (A type) 원문
+   ----------------------------------------------------------------------------
+   2026-07-29 구글 폼 원문(PDF)에서 그대로 옮김. 지문·보기 15문항 전부 원문 일치.
+   정답 번호는 응답 시트 정답줄(3,1,3,3,2,2,2,3,1,4,2,2,3,2,2)과 대조 완료.
+   q : 문제 지문.  (   ) 가 빈칸.  줄바꿈은 \n
+   o : 보기 4개 (순서 = 1,2,3,4번)
+   a : 정답 번호 (1~4)
+   ========================================================================== */
+const QUESTIONS = [
+  { q:'다니엘 씨는 미국(   ) 왔어요.',
+    o:['이','을','에서','하고'], a:3 },
+
+  { q:'저는 주말에는 (   ) 친구들하고 시간을 보내요.',
+    o:['보통','금방','아까','이따가'], a:1 },
+
+  { q:'가: 과일 좋아해요?\n나: 아니요, (   ).',
+    o:['좋아해요','없어요','안 좋아해요','좋아하지 마세요'], a:3 },
+
+  { q:'가: 가방이 무거워요?\n나: 아니요, (   ).',
+    o:['짧아요','예뻐요','가벼워요','멋있어요'], a:3 },
+
+  { q:'이번 방학에 저는 제주도에 갈 것입니다. (   ). 비행기 표는 20만원입니다. 8월 1일 아침 10시에 김포 공항에서 출발합니다. 8월 3일에 서울에 돌아옵니다. 한라산에도 가고 바다도 구경할 것입니다. 생선회도 먹고 싶습니다.',
+    o:['그리고 여행사에서 일할 것입니다',
+       '그래서 오늘 비행기 표를 예약했습니다',
+       '하지만 2박 3일 동안 아주 바빴습니다',
+       '그래서 이번 여행이 아주 즐거웠습니다'], a:2 },
+
+  { q:'옷을 입을 때 너무 유행을 따르지 말고 자신만의 (   )을 살리는 것이 좋다.',
+    o:['자격','개성','규칙','적성'], a:2 },
+
+  { q:'이사해서 (   ) 집을 빨리 구하고 싶어요.',
+    o:['산','살','사는','살을'], a:2 },
+
+  { q:'가: 왜 이렇게 기분이 좋아요?\n나: 이번에 졸업을 (   ).',
+    o:['할게요','해야 해요','했거든요','하기로 해요'], a:3 },
+
+  { q:'가: 오늘 모임에 좀 늦게 (   )?\n나: 아니요. 일찍 오세요.',
+    o:['가도 돼요','갔어요','가게 되었어요','갈 것 같아요'], a:1 },
+
+  { q:'저는 음악 듣기를 좋아합니다. 한국 음악을 좋아합니다. 그래서 음악을 공부하러 한국에 왔습니다. 노래는 잘 못하지만 노래를 (   ). 음악을 공부해서 꼭 좋은 노래를 만들 겁니다.',
+    o:['공부했습니다','부를 겁니다','하러 왔습니다','만들고 싶습니다'], a:4 },
+
+  { q:'(   )은 방바닥을 따뜻하게 하는 한국의 전통적인 난방 방법이다.',
+    o:['마당','온돌','대청','부엌'], a:2 },
+
+  { q:'한국에 온 지 얼마 안 돼서 한국 생활에 (   ) 않다.',
+    o:['서운하지','익숙하지','필요하지','사소하지'], a:2 },
+
+  { q:'가: 저 사람은 외국어를 참 잘하네요.\n나: 어렸을 때부터 외국 여기저기에서 살았으니 (   ).',
+    o:['잘하는 척했어요','잘할 걸 그랬어요','잘할 수밖에 없지요','잘하라고 했어요'], a:3 },
+
+  { q:'가: 오래 기다리게 해서 미안해요.\n나: 아니에요, 책을 (   ) 시간 가는 줄 몰랐어요.',
+    o:['읽자마자','읽느라고','읽은 채로','읽기가 무섭게'], a:2 },
+
+  { q:'요즘 (   ) 다른 사람들이 쓰던 중고 용품을 이용하는 사람들이 많다. 집 근처 재활용센터에 가 보면 깨끗하고 좋은 물건들이 많다. 중고 물건이지만 오래된 옛날 물건이 아니라 짧은 기간 동안 사용했던 제품이나 최신형 제품도 많다. 옷부터 가구까지 모든 물건은 수리를 하고 품질을 확인했기 때문에 사용이 가능하다. 안 쓰는 물건을 가지고 와서 팔 수도 있고 또 필요한 물건을 싼 가격으로 살 수 있기 때문에 돈을 저축할 수도 있고 절약할 수도 있다.',
+    o:['물가가 조금 내려가서',
+       '물가가 많이 올라서인지',
+       '수리를 받으려는 사람들이 많아서',
+       '신제품을 좋아하는 사람들이 많아서'], a:2 }
+];
+
+/* ============================================================================
+   ②  레벨 기준  —  컷라인을 바꾸시려면 min 값만 조정하세요
+   ========================================================================== */
+const LEVELS = [
+  { min:13, ko:'중급 2', en:'Intermediate 2',
+    cheerKo:'복잡한 문법과 관용 표현까지 정확하게 이해하고 계세요.\n이제는 읽기·말하기의 폭을 넓히며 다듬어 갈 단계입니다.',
+    cheerEn:'You handle complex grammar and idiomatic expressions with confidence.\nIt is time to broaden your reading and speaking range.' },
+  { min:10, ko:'중급 1', en:'Intermediate 1',
+    cheerKo:'기본 문법이 탄탄하고 일상 대화에 어려움이 없으시네요.\n조금 더 정교한 표현을 익히면 금방 다음 단계로 올라갑니다.',
+    cheerEn:'Your grammar foundation is solid and daily conversation comes easily.\nA few more refined expressions and you will move up quickly.' },
+  { min:7, ko:'초급 2', en:'Beginner 2',
+    cheerKo:'일상에서 쓰는 표현을 잘 알고 계세요.\n문장을 조금씩 길게 이어 보는 연습을 함께 해 나가요.',
+    cheerEn:'You already know many everyday expressions.\nLet us practice connecting your sentences a little longer together.' },
+  { min:4, ko:'초급 1', en:'Beginner 1',
+    cheerKo:'기초를 차근차근 쌓아 가고 계세요.\n선생님과 함께 하면 훨씬 빨라집니다. 잘 오셨어요.',
+    cheerEn:'You are building your foundation step by step.\nWith a teacher beside you it goes much faster. Welcome.' },
+  { min:0, ko:'입문', en:'Starter',
+    cheerKo:'지금부터 시작하면 됩니다. 처음이 가장 빨리 느는 때예요.\n선생님이 처음부터 천천히 함께 가 드릴게요.',
+    cheerEn:'This is the perfect place to begin. Beginners improve the fastest.\nYour teacher will walk with you slowly from the very start.' }
+];
+
+/* ============================================================================
+   ③  화면 문구 (한국어 / English)
+   ========================================================================== */
+const I18N = {
+  eyebrowIntro:{ko:'한국어 레벨테스트',en:'KOREAN LEVEL TEST'},
+  title:{ko:'나의 한국어,<br>어디쯤 왔을까요?',en:'How far has your<br>Korean come?'},
+  titleEn:{ko:'Korean Level Test · 15 Questions',en:'한국어 레벨테스트 · 15문항'},
+  introLead:{ko:'짧은 문제로 지금의 수준을 확인해 보세요. 결과에 맞는 선생님과 교재를 안내해 드립니다.',
+             en:'A short test to find where you are right now. We will match you with a teacher and materials that fit.'},
+  factQK:{ko:'문항',en:'Questions'},
+  factQV:{ko:'<b>15문항</b> · 객관식 4지선다',en:'<b>15 questions</b> · multiple choice'},
+  factTK:{ko:'소요 시간',en:'Time'},
+  factTV:{ko:'약 <b>10분</b> · 시간 제한 없음',en:'About <b>10 minutes</b> · no time limit'},
+  factRK:{ko:'결과',en:'Result'},
+  factRV:{ko:'레벨 테스트가 끝나면 <b>결과가</b> 나옵니다',
+          en:'Your <b>result appears</b> when you finish'},
+  nameLabel:{ko:'이름',en:'Your name'},
+  nameHint:{ko:'(등록할 때 쓰신 이름을 그대로 써 주세요)',
+            en:'(please use the same name you registered with)'},
+  namePh:{ko:'예: 응우옌 티 란',en:'e.g. Nguyen Thi Lan'},
+  phoneLabel:{ko:'전화번호',en:'Phone number'},
+  phoneHint:{ko:'(등록할 때 쓰신 번호를 그대로 써 주세요)',
+             en:'(please use the number you registered with)'},
+  phonePh:{ko:'010-1234-5678',en:'010-1234-5678'},
+  whyAsk:{ko:'등록하실 때 남기신 정보와 대조하기 위해서만 씁니다.\n이 화면에서 어디로도 전송되지 않습니다.',
+          en:'Used only to match your registration record.\nNothing is sent anywhere from this page.'},
+  startBtn:{ko:'시작하기',en:'Start the test'},
+
+  progressLabel:{ko:'진행',en:'Progress'},
+  qInstr:{ko:'(   )에 알맞은 것을 고르세요.',
+          en:'Fill in the blank with the correct word or sentence.'},
+  skipBtn:{ko:'잘 모르겠어요 — 건너뛰기',en:'Not sure — skip this one'},
+  prevBtn:{ko:'이전',en:'Back'},
+  nextBtn:{ko:'다음',en:'Next'},
+  lastBtn:{ko:'결과 보기',en:'See my result'},
+
+  eyebrowResult:{ko:'결과',en:'YOUR RESULT'},
+  helloNamed:{ko:'{name} 님의 결과입니다',en:'Result for {name}'},
+  helloPlain:{ko:'수고하셨습니다',en:'Well done'},
+  pct:{ko:'정답률 {p}%',en:'{p}% correct'},
+  reviewBtn:{ko:'문항별로 확인하기',en:'Review each question'},
+  captureNote:{ko:'이 화면을 캡처해서 담당 선생님께 보내주세요.\n결과는 따로 저장되지 않습니다.',
+               en:'Please screenshot this page and send it to your GKS contact.\nYour result is not stored anywhere.'},
+  retryBtn:{ko:'다시 풀기',en:'Try again'},
+  homeBtn:{ko:'GKS 홈으로',en:'GKS home'},
+  answerLine:{ko:'정답 <b>{correct}</b>',en:'Answer: <b>{correct}</b>'},
+  answerLineWrong:{ko:'내 답 <s>{mine}</s> · 정답 <b>{correct}</b>',en:'You: <s>{mine}</s> · Answer: <b>{correct}</b>'},
+  answerLineSkip:{ko:'답하지 않음 · 정답 <b>{correct}</b>',en:'Skipped · Answer: <b>{correct}</b>'},
+
+  footOrg:{ko:'글로벌한국어나눔 (GKS)',en:'Global Korean Sharing (GKS)'},
+  footNote:{ko:'한국에서 공부하는 유학생을 위한 무료 1:1 한국어 튜터링',
+            en:'Free 1:1 Korean tutoring for international students in Korea'}
+};
+
+/* ============================================================================
+   ④  엔진
+   ========================================================================== */
+const JAMO = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㄲ'];
+
+let lang = 'ko';
+let idx = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let studentName = '';
+let studentPhone = '';
+
+/* ---- 다국어 ---- */
+function t(key, vars){
+  let s = (I18N[key] && I18N[key][lang]) || '';
+  if(vars) for(const k in vars) s = s.replaceAll('{'+k+'}', vars[k]);
+  return s;
+}
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = (l === 'ko') ? 'ko' : 'en';
+  document.getElementById('btn-ko').classList.toggle('on', l === 'ko');
+  document.getElementById('btn-en').classList.toggle('on', l === 'en');
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+
+  if(document.getElementById('s-quiz').classList.contains('on')) renderQ();
+  if(document.getElementById('s-result').classList.contains('on')) renderResult();
+}
+
+/* ---- 화면 전환 ---- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---- 시작 ---- */
+function startTest(){
+  studentName  = document.getElementById('nameInput').value.trim();
+  studentPhone = document.getElementById('phoneInput').value.trim();
+  if(!studentName || !phoneOk(studentPhone)) return;
+  idx = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  document.getElementById('totNo').textContent = QUESTIONS.length;
+  show('s-quiz');
+  renderQ();
+}
+
+/* ---- 문제 그리기 ---- */
+function renderQ(){
+  const q = QUESTIONS[idx];
+
+  document.getElementById('curNo').textContent = idx + 1;
+  document.getElementById('bar').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
+  document.getElementById('qJamo').textContent = JAMO[idx % JAMO.length];
+  const qt = document.getElementById('qText');
+  qt.textContent = q.q;
+  qt.className = 'q-text' + (q.q.length > 90 ? ' long' : '');   // 긴 지문은 살짝 작게
+
+  const ul = document.getElementById('opts');
+  ul.innerHTML = '';
+  q.o.forEach((text, i) => {
+    const n = i + 1;
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt' + (answers[idx] === n ? ' sel' : '');
+    b.onclick = () => pick(n);
+    b.innerHTML = '<span class="no">' + n + '</span><span>' + escapeHtml(text) + '</span>';
+    li.appendChild(b);
+    ul.appendChild(li);
+  });
+
+  document.getElementById('prevBtn').style.display = (idx === 0) ? 'none' : '';
+  const nb = document.getElementById('nextBtn');
+  nb.textContent = (idx === QUESTIONS.length - 1) ? t('lastBtn') : t('nextBtn');
+  nb.disabled = (answers[idx] === null);
+}
+
+function pick(n){
+  answers[idx] = n;
+  document.querySelectorAll('#opts .opt').forEach((el, i) => {
+    el.classList.toggle('sel', i + 1 === n);
+  });
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQ(skip){
+  if(skip) answers[idx] = null;
+  if(idx === QUESTIONS.length - 1){ finish(); return; }
+  idx++;
+  renderQ();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function prevQ(){
+  if(idx === 0) return;
+  idx--;
+  renderQ();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---- 채점 ---- */
+function score(){
+  let s = 0;
+  QUESTIONS.forEach((q, i) => { if(answers[i] === q.a) s++; });
+  return s;
+}
+function levelOf(s){
+  return LEVELS.find(l => s >= l.min) || LEVELS[LEVELS.length - 1];
+}
+
+function finish(){
+  show('s-result');
+  renderResult();
+}
+
+function renderResult(){
+  const s   = score();
+  const tot = QUESTIONS.length;
+  const pct = Math.round(s / tot * 100);
+  const lv  = levelOf(s);
+
+  const who = '<b>' + escapeHtml(studentName) + '</b>' +
+              (studentPhone ? '<span class="tag">' + escapeHtml(studentPhone) + '</span>' : '');
+  document.getElementById('resultHello').innerHTML =
+    studentName ? t('helloNamed', {name:who}) : t('helloPlain');
+  document.getElementById('scoreNum').textContent = s;
+  document.getElementById('scoreTot').textContent = tot;
+  document.getElementById('scorePct').textContent = t('pct', {p:pct});
+  document.getElementById('levelKo').textContent  = (lang === 'ko') ? lv.ko : lv.en;
+  document.getElementById('levelEn').textContent  = (lang === 'ko') ? lv.en : lv.ko;
+  document.getElementById('cheer').textContent    = (lang === 'ko') ? lv.cheerKo : lv.cheerEn;
+
+  const rv = document.getElementById('review');
+  rv.innerHTML = QUESTIONS.map((q, i) => {
+    const mine = answers[i];
+    const ok   = mine === q.a;
+    const correctTxt = q.a + ') ' + q.o[q.a - 1];
+    let line;
+    if(ok)             line = t('answerLine',      {correct:escapeHtml(correctTxt)});
+    else if(mine)      line = t('answerLineWrong', {mine:escapeHtml(mine + ') ' + q.o[mine - 1]), correct:escapeHtml(correctTxt)});
+    else               line = t('answerLineSkip',  {correct:escapeHtml(correctTxt)});
+    const stem = q.q.replace(/\n/g, ' ');
+    return '<div class="rv ' + (ok ? 'o' : 'x') + '">' +
+             '<span class="rn">' + (i + 1) + '</span>' +
+             '<div class="rb"><div class="rq">' + escapeHtml(stem) + '</div>' +
+             '<div class="ra">' + line + '</div></div>' +
+           '</div>';
+  }).join('');
+}
+
+function toggleReview(){
+  document.getElementById('review').classList.toggle('show');
+  document.getElementById('rvToggle').classList.toggle('open');
+}
+
+function restart(){
+  idx = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  document.getElementById('review').classList.remove('show');
+  document.getElementById('rvToggle').classList.remove('open');
+  checkReady();
+  show('s-intro');
+}
+
+/* ---- 전화번호 정리 : 한국 번호는 자동으로 하이픈, 해외(+) 번호는 그대로 ---- */
+function formatPhone(raw){
+  let v = String(raw).replace(/[^\d+]/g, '');
+  if(v.indexOf('+') === 0) return '+' + v.replace(/\D/g, '').slice(0, 15);   // 해외 번호
+  v = v.replace(/\D/g, '').slice(0, 11);
+  if(v.indexOf('02') === 0 && v.length > 2){                                  // 서울 지역번호
+    const r = v.slice(2);
+    return '02-' + (r.length > 4 ? r.slice(0, r.length - 4) + '-' + r.slice(r.length - 4) : r);
+  }
+  if(v.length > 7)  return v.slice(0, 3) + '-' + v.slice(3, v.length - 4) + '-' + v.slice(v.length - 4);
+  if(v.length > 3)  return v.slice(0, 3) + '-' + v.slice(3);
+  return v;
+}
+function phoneOk(v){ return (String(v).replace(/\D/g, '').length >= 9); }
+
+/* ---- 시작 버튼 활성화 (이름 + 전화번호가 모두 채워져야 함) ---- */
+function checkReady(){
+  const n = document.getElementById('nameInput').value.trim();
+  const p = document.getElementById('phoneInput').value.trim();
+  document.getElementById('startBtn').disabled = !(n.length > 0 && phoneOk(p));
+}
+document.getElementById('nameInput').addEventListener('input', checkReady);
+document.getElementById('phoneInput').addEventListener('input', function(){
+  const atEnd = (this.selectionStart === this.value.length);
+  this.value = formatPhone(this.value);
+  if(atEnd) this.setSelectionRange(this.value.length, this.value.length);
+  checkReady();
+});
+
+function goHome(){
+  window.location.href = 'https://gks-site-fie.pages.dev';
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---- 키보드 ---- */
+document.addEventListener('keydown', e => {
+  if(!document.getElementById('s-quiz').classList.contains('on')) return;
+  if(e.key >= '1' && e.key <= '4'){
+    const n = Number(e.key);
+    if(n <= QUESTIONS[idx].o.length) pick(n);
+  }
+  if(e.key === 'Enter' && !document.getElementById('nextBtn').disabled) nextQ(false);
+  if(e.key === 'ArrowLeft') prevQ();
+});
+
+/* ---- 초기화 ---- */
+document.getElementById('totNo').textContent = QUESTIONS.length;
+document.getElementById('scoreTot').textContent = QUESTIONS.length;
+setLang('ko');
+</script>
+</body>
+</html>
