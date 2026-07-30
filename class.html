@@ -169,6 +169,22 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
 }
 .pill .led{width:7px; height:7px; border-radius:50%; background:var(--ok)}
 .pill.mid .led{background:#d9a53f} .pill.no .led{background:#c9622b}
+/* 칠판 — 영상 위를 덮습니다. 안내(banner, z-index 9)는 칠판 위에도 보입니다 */
+.board{position:absolute; inset:0; z-index:8; display:flex; flex-direction:column; background:#fbfaf7}
+.board canvas{flex:1 1 auto; width:100%; min-height:0; display:block; touch-action:none; cursor:crosshair}
+.btools{
+  flex:0 0 auto; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+  padding:8px 10px; background:#eef3fa; border-bottom:1px solid #d6e0ee;
+}
+.btools button{
+  border:1px solid #c3d2e8; background:#fff; color:#2e4d8f; border-radius:11px;
+  padding:7px 11px; font-family:inherit; font-size:.78rem; cursor:pointer;
+}
+.btools button.on{background:#dbe7f8; border-color:#4472C4}
+.btools .pen{width:30px; height:30px; padding:0; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #c3d2e8}
+.btools .pen.on{box-shadow:0 0 0 2px #4472C4}
+.btools .sp{flex:1 1 auto}
+
 .banner{
   /* 연결 상태 알약(top:12px) 아래에 놓습니다 — 안내가 떠도 연결 상태는 계속 보여야 합니다 */
   position:absolute; left:12px; right:12px; top:52px; z-index:9;
@@ -305,6 +321,21 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
       <div class="who" id="myWho">나</div>
     </div>
 
+    <!-- 칠판 — 둘이 같이 씁니다 -->
+    <div class="board hidden" id="board">
+      <div class="btools">
+        <button class="pen on" id="bdP1" style="background:#1b2436" onclick="bdPen(this,'#1b2436')"></button>
+        <button class="pen" style="background:#c0392b" onclick="bdPen(this,'#c0392b')"></button>
+        <button class="pen" style="background:#1f6fb2" onclick="bdPen(this,'#1f6fb2')"></button>
+        <button id="btThick" onclick="bdToggleThick(this)" data-i18n="bdThick">굵게</button>
+        <button id="btErase" onclick="bdToggleErase(this)" data-i18n="bdErase">지우개</button>
+        <span class="sp"></span>
+        <button onclick="bdClear()" data-i18n="bdClear">전체 지우기</button>
+        <button onclick="closeBoard(true)" data-i18n="bdClose">칠판 닫기</button>
+      </div>
+      <canvas id="boardCv"></canvas>
+    </div>
+
     <!-- 재접속 / 폴백 안내 -->
     <div class="banner hidden" id="bnrRecon">
       <h3 data-i18n="reconTitle">연결이 끊겼습니다 — 다시 잇고 있어요</h3>
@@ -362,6 +393,9 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
     </button>
     <button class="ctl" id="cAudio" onclick="toggleAudioFirst()">
       <span class="ico">🔊</span><span data-i18n="cAudio">음성 우선</span>
+    </button>
+    <button class="ctl" id="cBoard" onclick="toggleBoard()">
+      <span class="ico">✏️</span><span data-i18n="cBoard">칠판</span>
     </button>
     <button class="ctl hidden" id="cBook" onclick="toggleBooks()">
       <span class="ico">📚</span><span data-i18n="cBook">교재</span>
@@ -439,6 +473,13 @@ var I18N = {
   cCam:{ko:'카메라', en:'Camera'},
   cShare:{ko:'교재 보이기', en:'Share'},
   cBook:{ko:'교재', en:'Books'},
+  cBoard:{ko:'칠판', en:'Board'},
+  bdThick:{ko:'굵게', en:'Thick'},
+  bdErase:{ko:'지우개', en:'Eraser'},
+  bdClear:{ko:'전체 지우기', en:'Clear all'},
+  bdClose:{ko:'칠판 닫기', en:'Close board'},
+  bdOpened:{ko:'칠판을 열었습니다 · 학생 화면에도 함께 열립니다',
+            en:'Board opened - it opens on your partner’s screen too'},
   cRec:{ko:'녹화', en:'Record'},
   bkTitle:{ko:'교재 열기', en:'Open materials'},
   bkLead:{ko:'새 창에서 열립니다. 그 창을 [교재 보이기]로 학생에게 보여주세요.',
@@ -1003,6 +1044,149 @@ function openTab(url){
   if(!w) toast(t('popupBlocked'));
 }
 
+/* ---------- 칠판 — 수업방 안에서 둘이 같이 씁니다 ----------
+   붓질은 이미 깔려 있는 통신선으로만 오갑니다. 우리 서버에도 남의 서버에도 남지 않습니다.
+   좌표는 0~1 비율로 주고받아서 두 사람 화면 크기가 달라도 같은 자리에 그려집니다. */
+var bdOn = false, bdColor = '#1b2436', bdThickOn = false, bdEraseOn = false;
+var bdStrokes = [];   /* 지금까지의 붓질 — 창 크기가 바뀌면 이걸로 다시 그립니다 */
+var bdCur = null, bdSendAt = 0, bdSeq = 0;
+
+function bdCv(){ return document.getElementById('boardCv'); }
+
+function toggleBoard(){ bdOn ? closeBoard(true) : openBoard(true); }
+
+function openBoard(tell){
+  document.getElementById('board').classList.remove('hidden');
+  document.getElementById('cBoard').classList.add('on');
+  bdOn = true;
+  bdFit();
+  if(tell){
+    sendData({ t:'bd_open' });
+    bdSync();
+    toast(t('bdOpened'));
+    logEvent('board_open');
+  }
+}
+
+function closeBoard(tell){
+  document.getElementById('board').classList.add('hidden');
+  document.getElementById('cBoard').classList.remove('on');
+  bdOn = false;
+  bdCur = null;
+  if(tell){ sendData({ t:'bd_close' }); logEvent('board_close'); }
+}
+
+/* 도구 */
+function bdPen(el, c){
+  bdColor = c; bdEraseOn = false;
+  [].forEach.call(document.querySelectorAll('.btools .pen'), function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  document.getElementById('btErase').classList.remove('on');
+}
+function bdToggleThick(el){ bdThickOn = !bdThickOn; el.classList.toggle('on', bdThickOn); }
+function bdToggleErase(el){ bdEraseOn = !bdEraseOn; el.classList.toggle('on', bdEraseOn); }
+function bdClear(){
+  bdStrokes = []; bdRedraw();
+  sendData({ t:'bd_clear' });
+  logEvent('board_clear');
+}
+
+/* 그리기 */
+function bdFit(){
+  var cv = bdCv(), r = cv.getBoundingClientRect();
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width  = Math.max(1, Math.round(r.width  * dpr));
+  cv.height = Math.max(1, Math.round(r.height * dpr));
+  bdRedraw();
+}
+
+function bdRedraw(){
+  var cv = bdCv(), g = cv.getContext('2d');
+  g.fillStyle = '#fbfaf7';
+  g.fillRect(0, 0, cv.width, cv.height);
+  bdStrokes.forEach(bdPaint);
+}
+
+function bdPaint(s){
+  if(!s || !s.p || s.p.length < 4) return;
+  var cv = bdCv(), g = cv.getContext('2d');
+  g.strokeStyle = s.c;
+  g.lineWidth = Math.max(1, s.w * cv.width / 1000);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.beginPath();
+  g.moveTo(s.p[0] * cv.width, s.p[1] * cv.height);
+  for(var i = 2; i < s.p.length; i += 2) g.lineTo(s.p[i] * cv.width, s.p[i+1] * cv.height);
+  g.stroke();
+}
+
+function bdAt(e){
+  var r = bdCv().getBoundingClientRect();
+  return [ (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height ];
+}
+
+function bdStart(e){
+  if(!bdOn) return;
+  try{ bdCv().setPointerCapture(e.pointerId); }catch(err){}
+  var p = bdAt(e);
+  bdCur = {
+    id: (ROLE === 'teacher' ? 'T' : 'S') + (++bdSeq),
+    c: bdEraseOn ? '#fbfaf7' : bdColor,
+    w: bdEraseOn ? 30 : (bdThickOn ? 9 : 4),
+    p: [p[0], p[1]]
+  };
+  bdStrokes.push(bdCur);
+  e.preventDefault();
+}
+
+function bdMove(e){
+  if(!bdCur) return;
+  var p = bdAt(e);
+  bdCur.p.push(p[0], p[1]);
+  bdPaint({ c:bdCur.c, w:bdCur.w, p:bdCur.p.slice(-4) });   /* 방금 그은 마디만 덧그립니다 */
+  var now = Date.now();
+  if(now - bdSendAt > 90){ bdSendAt = now; bdSend(); }
+  e.preventDefault();
+}
+
+function bdEnd(){
+  if(!bdCur) return;
+  bdSend();
+  bdCur = null;
+}
+
+function bdSend(){
+  if(!bdCur) return;
+  sendData({ t:'bd', s:{
+    id: bdCur.id, c: bdCur.c, w: bdCur.w,
+    p: bdCur.p.map(function(v){ return Math.round(v * 1000) / 1000; })
+  }});
+}
+
+/* 늦게 연 사람에게 지금까지의 붓질을 나눠 보냅니다 */
+function bdSync(){
+  for(var i = 0; i < bdStrokes.length; i += 15){
+    sendData({ t:'bd_sync', list: bdStrokes.slice(i, i + 15) });
+  }
+}
+
+function bdTake(s){
+  if(!s || !s.id) return;
+  for(var i = bdStrokes.length - 1; i >= 0; i--){
+    if(bdStrokes[i].id === s.id){ bdStrokes[i] = s; return; }
+  }
+  bdStrokes.push(s);
+}
+
+(function bdInit(){
+  var cv = document.getElementById('boardCv');
+  if(!cv) return;
+  cv.addEventListener('pointerdown', bdStart);
+  cv.addEventListener('pointermove', bdMove);
+  cv.addEventListener('pointerup', bdEnd);
+  cv.addEventListener('pointercancel', bdEnd);
+  window.addEventListener('resize', function(){ if(bdOn) bdFit(); });
+})();
+
 /* ---------- 녹화 — 선생님 컴퓨터에만 저장됩니다 ----------
    서버로 올라가지 않습니다. 창을 닫으면 그때까지의 것도 사라집니다. */
 var rec = null, recTimer = null, recCtx = null, recChunks = [], recDidRun = false;
@@ -1141,6 +1325,21 @@ function onData(payload){
     document.getElementById('bnrWaitPhoto').classList.add('hidden');
     capturePhoto();
   }
+  /* 칠판 */
+  if(d.t === 'bd_open' && !bdOn){ openBoard(false); }
+  if(d.t === 'bd_close' && bdOn){ closeBoard(false); }
+  if(d.t === 'bd_clear'){ bdStrokes = []; if(bdOn) bdRedraw(); }
+  if(d.t === 'bd' && d.s){
+    bdTake(d.s);
+    if(!bdOn) openBoard(false);
+    bdRedraw();
+  }
+  if(d.t === 'bd_sync' && d.list && d.list.length){
+    d.list.forEach(bdTake);
+    if(!bdOn) openBoard(false);
+    bdRedraw();
+  }
+
   if(d.t === 'photo_no' && ROLE === 'teacher'){
     document.getElementById('bnrWaitPhoto').classList.add('hidden');
     photoBusy = false;
