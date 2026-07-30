@@ -295,6 +295,23 @@ details[open] summary::after{content:'▴'}
       <button class="btn orange hidden" id="btnFile" onclick="requestFiling()" data-i18n="fBtn">이번 달 1365 신청하기</button>
       <button class="btn ghost sm hidden" id="btnFileCancel" onclick="cancelFiling()" data-i18n="fCancel">신청 취소</button>
       <div id="fMsg" class="msg"></div>
+
+      <!-- 한글로 써 오시던 분을 위한 칸 -->
+      <details style="margin-top:16px">
+        <summary style="font-size:1rem"><b data-i18n="rpTitle">한글 보고서로 내시던 분</b></summary>
+        <p class="muted" style="margin:.5rem 0 0" data-i18n="rpLead">
+          늘 쓰시던 한글 파일이 편하시면 그대로 쓰셔도 됩니다. 여기에 올려 두시면 본부가 함께 챙깁니다.
+          메일로 보내지 않아도 됩니다.
+        </p>
+        <div id="rpList" style="margin-top:12px"></div>
+        <div class="empty hidden" id="rpEmpty" data-i18n="rpEmpty">올려 두신 보고서가 없습니다.</div>
+        <button class="btn ghost sm" onclick="pickReport()" data-i18n="rpBtn">한글 파일 올리기</button>
+        <p class="muted" style="margin:8px 0 0; font-size:.82rem" data-i18n="rpHelp">
+          한글(.hwp, .hwpx) · PDF · 사진 모두 됩니다. 한 개 6MB까지.
+        </p>
+        <div id="rpMsg" class="msg"></div>
+      </details>
+
       <div id="fPast" class="mynote hidden"></div>
     </div>
 
@@ -365,6 +382,7 @@ details[open] summary::after{content:'▴'}
     </div>
 
     <input type="file" id="fileIn" accept="image/*" class="hidden">
+    <input type="file" id="reportIn" accept=".hwp,.hwpx,.pdf,.docx,.xlsx,image/*" class="hidden">
 
     <!-- ========== 본부에 한마디 ========== -->
     <div class="card">
@@ -455,6 +473,18 @@ var I18N = {
   fStSent:{ko:'제출 완료', en:'Submitted'},
   fOptional:{ko:'신청은 선택입니다. 안 누르셔도 수업 기록은 그대로 남습니다.',
              en:'Filing is optional. Your lesson record stays either way.'},
+
+  rpTitle:{ko:'한글 보고서로 내시던 분', en:'If you file with an HWP report'},
+  rpLead:{ko:'늘 쓰시던 한글 파일이 편하시면 그대로 쓰셔도 됩니다. 여기에 올려 두시면 본부가 함께 챙깁니다. 메일로 보내지 않아도 됩니다.',
+          en:'If your usual HWP file is easier, keep using it. Upload it here and HQ will include it — no email needed.'},
+  rpEmpty:{ko:'올려 두신 보고서가 없습니다.', en:'No report uploaded.'},
+  rpBtn:{ko:'한글 파일 올리기', en:'Upload HWP file'},
+  rpHelp:{ko:'한글(.hwp, .hwpx) · PDF · 사진 모두 됩니다. 한 개 6MB까지.',
+          en:'HWP, PDF and images are all fine. Up to 6MB each.'},
+  rpOk:{ko:'올렸습니다. 본부가 이번 달 신청에 함께 넣습니다.',
+        en:'Uploaded. HQ will include it with this month’s filing.'},
+  rpBadType:{ko:'그 형식은 받을 수 없습니다. 한글·PDF·사진으로 올려 주세요.',
+             en:'That file type isn’t supported. Please use HWP, PDF or an image.'},
   gapNote:{ko:'마지막 수업이 {d}일 전입니다. 짝에게 안부를 전해 보시면 어떨까요?',
            en:'Your last lesson was {d} days ago. Perhaps say hello to your partner?'},
   goClass:{ko:'수업 들어가기', en:'Go to class'},
@@ -847,6 +877,8 @@ function renderFiling(isTeacher){
                + (p.status==='submitted' ? t('fStSent') : t('fStReq')) + '</span></div>';
         }).join('');
   } else { pb.classList.add('hidden'); pb.innerHTML=''; }
+
+  renderReports();
 }
 
 function requestFiling(){
@@ -872,6 +904,59 @@ function requestFiling(){
   }).catch(function(){
     busy('btnFile', false, label);
     msg2('fMsg', t('errNet'));
+  });
+}
+
+/* ---- 한글 보고서 겸용 ---- */
+function pickReport(){
+  var inp = document.getElementById('reportIn');
+  inp.value = '';
+  inp.onchange = function(){
+    var f = inp.files && inp.files[0];
+    if(f) uploadReport(f);
+  };
+  inp.click();
+}
+
+function uploadReport(file){
+  msg2('rpMsg','');
+  if(file.size > 6*1024*1024){ msg2('rpMsg', t('phUpBig')); return; }
+  var fr = new FileReader();
+  fr.onload = function(){
+    fetch(CLASS_API.replace(/\/$/,'') + '/photo', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        me:ME, name:NAME, kind:'report', dataUrl:fr.result,
+        filename:file.name, caption:file.name.slice(0,120),
+        taken_at:new Date(file.lastModified || Date.now()).toISOString()
+      })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(!d || !d.ok){
+        msg2('rpMsg', d && d.error==='BAD_TYPE' ? t('rpBadType')
+                    : d && d.error==='TOO_BIG' ? t('phUpBig') : t('phUpFail'));
+        return;
+      }
+      msg2('rpMsg', t('rpOk'), 'ok');
+      refresh();
+    }).catch(function(){ msg2('rpMsg', t('phUpFail')); });
+  };
+  fr.readAsDataURL(file);
+}
+
+function renderReports(){
+  var rows = PHOTOS.filter(function(p){ return p.kind === 'report'; });
+  document.getElementById('rpEmpty').classList.toggle('hidden', rows.length>0);
+  var box = document.getElementById('rpList');
+  box.innerHTML = '';
+  rows.forEach(function(p){
+    var div = document.createElement('div');
+    div.className = 'row';
+    div.style.cssText = 'padding:9px 0; font-size:.9rem; display:flex; align-items:center; gap:9px; border-top:1px solid var(--line)';
+    div.innerHTML = '<span class="when" style="color:var(--muted); font-size:.8rem">'+fmtDay(p.day)+'</span>'
+      + '<span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">' + esc(p.caption||'') + '</span>'
+      + '<a style="margin-left:auto; white-space:nowrap" href="' + esc(photoUrl(p.rkey, true)) + '">' + t('phDown') + '</a>'
+      + '<button style="border:0;background:none;color:#a8511b;cursor:pointer;font-family:inherit;font-size:.82rem" onclick="delPhoto('+Number(p.id)+')">' + t('phDel') + '</button>';
+    box.appendChild(div);
   });
 }
 

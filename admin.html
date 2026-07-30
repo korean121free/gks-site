@@ -635,11 +635,16 @@ function renderForm(){
     });
     tbl += '</tbody></table></div>';
 
+    var dl = function(k){ return CLASS_API.replace(/\/$/,'') + '/photo/get?k=' + encodeURIComponent(k) + '&dl=1'; };
     var acts = '<div class="fmacts">'
       + '<button onclick="copyTable(' + i + ')">표 복사</button>'
       + (T.photo_key
-          ? '<a href="' + esc(CLASS_API.replace(/\/$/,'') + '/photo/get?k=' + encodeURIComponent(T.photo_key) + '&dl=1') + '">증빙 사진 내려받기</a>'
+          ? '<a href="' + esc(dl(T.photo_key)) + '">증빙 사진 내려받기</a>'
           : '<span class="nophoto">증빙 사진 없음</span>')
+      /* 한글로 써 오신 분 — 겸용하는 동안 함께 챙깁니다 */
+      + (T.reports || []).map(function(rp){
+          return '<a href="' + esc(dl(rp.rkey)) + '">한글 · ' + esc(rp.name || '보고서') + '</a>';
+        }).join('')
       + '</div>';
 
     div.innerHTML = head + tbl + acts;

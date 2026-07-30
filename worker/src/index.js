@@ -503,7 +503,7 @@ async function handleForm1365(url, env, origin) {
   const ym = (url.searchParams.get('month') || kstDay().slice(0, 7)).slice(0, 7);
   const showAll = url.searchParams.get('all') === '1';
 
-  const [ses, infos, photos, filings] = await Promise.all([
+  const [ses, infos, photos, reports, filings] = await Promise.all([
     env.DB.prepare(
       `SELECT me, me_name, partner, day, started_at, ended_at, minutes, memo
          FROM session
@@ -519,6 +519,12 @@ async function handleForm1365(url, env, origin) {
          FROM photo WHERE kind='proof' AND day LIKE ? GROUP BY me`
     ).bind(ym + '%').all(),
 
+    // 한글로 써 오신 보고서 — 엑셀과 겸용하는 동안 함께 챙깁니다
+    env.DB.prepare(
+      `SELECT me, rkey, caption FROM photo
+        WHERE kind='report' AND day LIKE ? ORDER BY ts DESC`
+    ).bind(ym + '%').all(),
+
     env.DB.prepare(
       `SELECT me, status, requested_at, submitted_at FROM filing WHERE ym = ?`
     ).bind(ym).all()
@@ -527,6 +533,11 @@ async function handleForm1365(url, env, origin) {
   const infoMap = new Map(infos.results.map(r => [r.me, r]));
   const photoMap = new Map(photos.results.map(r => [r.me, r]));
   const fileMap = new Map(filings.results.map(r => [r.me, r]));
+  const reportMap = new Map();
+  for (const r of reports.results) {
+    if (!reportMap.has(r.me)) reportMap.set(r.me, []);
+    reportMap.get(r.me).push({ rkey: r.rkey, name: r.caption });
+  }
 
   /* 한국 시간으로 HH:MM */
   const hhmm = (iso) => {
@@ -550,6 +561,7 @@ async function handleForm1365(url, env, origin) {
         status: fl ? fl.status : 'none',
         photo_count: ph ? ph.n : 0,
         photo_key: ph ? ph.rkey : null,
+        reports: reportMap.get(s.me) || [],   // 한글로 써 오신 보고서
         lessons: 0,
         minutes: 0,
         rows: []
@@ -595,8 +607,22 @@ async function handleForm1365(url, env, origin) {
 
 /* ---------------- 사진 보관함 ---------------- */
 
-const PHOTO_KINDS = ['proof', 'cert', 'profile', 'free'];
+const PHOTO_KINDS = ['proof', 'cert', 'profile', 'free', 'report'];
 const PHOTO_MAX_BYTES = 6 * 1024 * 1024;   // 한 장 6MB까지
+
+/**
+ * kind='report' 는 선생님이 한글로 써 오시던 보고서입니다.
+ * 엑셀로 바꾼 뒤에도 당분간 함께 받습니다 — 한글이 익숙한 분들을 위해서.
+ * 확장자별로 R2에 그대로 담고, 취합할 때 ZIP에 함께 넣습니다.
+ */
+const REPORT_TYPES = {
+  hwp:  'application/x-hwp',
+  hwpx: 'application/hwp+zip',
+  pdf:  'application/pdf',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  jpg:  'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp'
+};
 
 /** 아무도 맞출 수 없는 파일 이름 — 이 이름 자체가 열쇠입니다 */
 function randKey() {
@@ -617,18 +643,34 @@ async function handlePhotoAdd(request, env, origin) {
   const kind = PHOTO_KINDS.includes(b.kind) ? b.kind : 'free';
   if (!me || !name) return json({ error: 'NO_KEY' }, env, origin, 400);
 
-  // data:image/jpeg;base64,... 형태만 받습니다
-  const m = String(b.dataUrl || '').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
-  if (!m) return json({ error: 'BAD_IMAGE' }, env, origin, 400);
+  const raw = String(b.dataUrl || '');
+  let ext, mime, b64;
 
-  const bin = Uint8Array.from(atob(m[2]), c => c.charCodeAt(0));
+  if (kind === 'report') {
+    // 한글 보고서 등 — 파일 이름의 확장자로 종류를 정합니다
+    const fx = String(b.filename || '').toLowerCase().match(/\.([a-z0-9]{2,5})$/);
+    ext = fx && REPORT_TYPES[fx[1]] ? fx[1] : null;
+    if (!ext) return json({ error: 'BAD_TYPE' }, env, origin, 400);
+    mime = REPORT_TYPES[ext];
+    const m = raw.match(/^data:[^;]*;base64,([A-Za-z0-9+/=]+)$/);
+    if (!m) return json({ error: 'BAD_FILE' }, env, origin, 400);
+    b64 = m[1];
+  } else {
+    // 사진은 이미지만 받습니다
+    const m = raw.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+    if (!m) return json({ error: 'BAD_IMAGE' }, env, origin, 400);
+    mime = m[1];
+    ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+    b64 = m[2];
+  }
+
+  const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
   if (bin.byteLength > PHOTO_MAX_BYTES) return json({ error: 'TOO_BIG' }, env, origin, 413);
 
-  const ext = m[1] === 'image/png' ? 'png' : m[1] === 'image/webp' ? 'webp' : 'jpg';
   const rkey = randKey() + '.' + ext;
 
   await env.PHOTOS.put(rkey, bin, {
-    httpMetadata: { contentType: m[1], cacheControl: 'private, max-age=31536000' }
+    httpMetadata: { contentType: mime, cacheControl: 'private, max-age=31536000' }
   });
 
   const takenAt = /^\d{4}-\d{2}-\d{2}T/.test(String(b.taken_at || ''))
@@ -655,7 +697,9 @@ async function handlePhotoGet(url, env) {
   if (!env.PHOTOS) return new Response('not configured', { status: 500 });
 
   const k = String(url.searchParams.get('k') || '');
-  if (!/^[a-z0-9]{8,32}\.(jpg|png|webp)$/.test(k)) return new Response('bad key', { status: 400 });
+  if (!/^[a-z0-9]{8,32}\.(jpg|jpeg|png|webp|hwp|hwpx|pdf|docx|xlsx)$/.test(k)) {
+    return new Response('bad key', { status: 400 });
+  }
 
   const obj = await env.PHOTOS.get(k);
   if (!obj) return new Response('not found', { status: 404 });
@@ -669,12 +713,17 @@ async function handlePhotoGet(url, env) {
     let fname = k;
     if (env.DB) {
       const row = await env.DB.prepare(
-        `SELECT me_name, partner, taken_at, day FROM photo WHERE rkey = ?`
+        `SELECT me_name, partner, taken_at, day, kind, caption FROM photo WHERE rkey = ?`
       ).bind(k).first();
       if (row) {
-        const d = (row.taken_at || row.day || '').slice(0, 10).replace(/-/g, '.');
         const ext = k.split('.').pop();
-        fname = (row.me_name || '') + d + (row.partner ? '_' + row.partner : '') + '.' + ext;
+        if (row.kind === 'report') {
+          // 한글 보고서는 선생님이 붙인 이름을 그대로 살립니다
+          fname = (row.me_name || '') + '-' + (row.caption || ('보고서.' + ext));
+        } else {
+          const d = (row.taken_at || row.day || '').slice(0, 10).replace(/-/g, '.');
+          fname = (row.me_name || '') + d + (row.partner ? '_' + row.partner : '') + '.' + ext;
+        }
       }
     }
     // 한글·베트남어가 들어가므로 filename* (RFC 5987) 로 함께 보냅니다
