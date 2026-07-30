@@ -130,7 +130,8 @@ CREATE TABLE IF NOT EXISTS photo (
   me_name   TEXT,
   partner   TEXT,               -- 함께 찍은 학생
   kind      TEXT    NOT NULL,   -- proof | cert | profile | free
-  rkey      TEXT    NOT NULL,   -- R2 파일 이름 (아무도 못 맞추는 무작위 값)
+  rkey      TEXT    NOT NULL,   -- 파일 이름 (아무도 못 맞추는 무작위 값) — 증빙용 작은 장
+  rkey_big  TEXT,               -- 원본용 큰 장 (없을 수도 있습니다)
   caption   TEXT,
   bytes     INTEGER DEFAULT 0
 );

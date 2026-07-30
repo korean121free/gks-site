@@ -1380,13 +1380,41 @@ function capturePhoto(){
   var mine   = document.getElementById('myVideo');
   if(!remote){ photoBusy = false; return; }
 
+  var now = new Date();
+
+  /* 크게 한 번 그리고, 그것을 줄여 증빙용 작은 장을 만듭니다.
+     두 장이 글자 한 획까지 똑같아야 증빙으로 다툼이 없습니다. */
+  var big = shotCanvas(remote, mine, now, 2);
+
+  var small = document.createElement('canvas');
+  small.width = big.width / 2; small.height = big.height / 2;
+  var sg = small.getContext('2d');
+  sg.imageSmoothingQuality = 'high';
+  sg.drawImage(big, 0, 0, small.width, small.height);
+
+  apiPost('/photo', {
+    me:ME, name:MYNAME, partner:PARTNER, kind:'proof',
+    dataUrl:    small.toDataURL('image/jpeg', 0.86),   /* 목록·1365 기록지에 쓰는 장 */
+    dataUrlBig: big.toDataURL('image/jpeg', 0.9),      /* 원본 — 크게 보기·워크숍 영상 */
+    taken_at:now.toISOString(),
+    caption:'수업 증빙 · ' + fmtStamp(now)
+  }).then(function(d){
+    photoBusy = false;
+    toast(d && d.ok ? t('photoOk') : t('photoFail'));
+    logEvent(d && d.ok ? 'photo_saved' : 'photo_save_fail');
+  });
+}
+
+/* 실제로 그리는 곳 — s는 배율(1이면 1280×572) */
+function shotCanvas(remote, mine, now, s){
   var W = 1280, PANE = 640, PH = 480, BAR = 92;
   var cv = document.createElement('canvas');
-  cv.width = W; cv.height = PH + BAR;
+  cv.width = W * s; cv.height = (PH + BAR) * s;
   var g = cv.getContext('2d');
+  g.scale(s, s);
 
   g.fillStyle = '#1b2436';
-  g.fillRect(0, 0, cv.width, cv.height);
+  g.fillRect(0, 0, W, PH + BAR);
 
   drawPane(g, mine,   0,     0, PANE, PH, true);   /* 내 화면은 거울처럼 보이므로 되돌립니다 */
   drawPane(g, remote, PANE,  0, PANE, PH, false);
@@ -1397,7 +1425,6 @@ function capturePhoto(){
   g.fillStyle = '#4472C4';
   g.fillRect(0, PH, W, 4);
 
-  var now = new Date();
   var teacher = (ROLE === 'teacher') ? MYNAME : PARTNER;
   var student = (ROLE === 'teacher') ? PARTNER : MYNAME;
 
@@ -1417,17 +1444,7 @@ function capturePhoto(){
   g.fillText('온라인 수업 · ' + (ROOM||''), W - 24, PH + 71);
   g.textAlign = 'left';
 
-  var dataUrl = cv.toDataURL('image/jpeg', 0.86);
-
-  apiPost('/photo', {
-    me:ME, name:MYNAME, partner:PARTNER, kind:'proof',
-    dataUrl:dataUrl, taken_at:now.toISOString(),
-    caption:'수업 증빙 · ' + fmtStamp(now)
-  }).then(function(d){
-    photoBusy = false;
-    toast(d && d.ok ? t('photoOk') : t('photoFail'));
-    logEvent(d && d.ok ? 'photo_saved' : 'photo_save_fail');
-  });
+  return cv;
 }
 
 /* 영상 비율을 지키면서 칸에 맞춰 그립니다 */

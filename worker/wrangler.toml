@@ -11,10 +11,11 @@ binding = "DB"
 database_name = "gks-class-log"
 database_id = "1f336c5e-c7c9-480b-a5a0-c3a2c3c32939"
 
-# 사진 보관함 — 아직 꺼져 있습니다.
-# Cloudflare 대시보드에서 R2를 한 번 켠 뒤(계정당 1회),
+# 사진 보관함 — 지금은 D1(photo_blob 표)에 담고 있습니다. 이대로도 잘 됩니다.
+# R2로 옮기고 싶으면: 대시보드에서 R2를 한 번 켠 뒤(계정당 1회),
 #   worker\wr.bat r2 bucket create gks-photos
-# 를 실행하고 아래 세 줄의 # 을 지우면 사진 기능이 살아납니다.
+# 를 실행하고 아래 세 줄의 # 을 지우고 배포하면 됩니다.
+# 그때부터 새 사진만 R2로 가고, 이미 담긴 사진은 D1에서 그대로 나옵니다.
 # [[r2_buckets]]
 # binding = "PHOTOS"
 # bucket_name = "gks-photos"

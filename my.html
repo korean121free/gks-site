@@ -544,6 +544,7 @@ var I18N = {
   upFree:{ko:'내 컴퓨터에서 사진 올리기', en:'Upload from my computer'},
   phView:{ko:'크게', en:'View'},
   phDown:{ko:'내려받기', en:'Download'},
+  phOrig:{ko:'원본 내려받기', en:'Download original'},
   phDel:{ko:'지우기', en:'Delete'},
   phClose:{ko:'닫기', en:'Close'},
   phDelAsk:{ko:'이 사진을 지울까요? 되돌릴 수 없습니다.', en:'Delete this photo? This cannot be undone.'},
@@ -1015,7 +1016,8 @@ function paintGrid(gridId, emptyId, rows, canDelete){
     var when = p.taken_at ? fmtStampShort(p.taken_at) : fmtDay(p.day);
     var label = p.kind==='cert' ? t('kindCert') : p.kind==='profile' ? t('kindProfile') : when;
     div.innerHTML =
-        '<img src="' + esc(photoUrl(p.rkey)) + '" alt="" loading="lazy" onclick="openBig(\'' + esc(p.rkey) + '\')">'
+        '<img src="' + esc(photoUrl(p.rkey)) + '" alt="" loading="lazy" onclick="openBig(\''
+      + esc(p.rkey) + '\',\'' + esc(p.rkey_big || '') + '\')">'
       + '<div class="cap">' + esc(label) + (p.partner ? '<br>' + esc(p.partner) : '') + '</div>'
       + '<div class="acts">'
       +   '<a href="' + esc(photoUrl(p.rkey, true)) + '">' + t('phDown') + '</a>'
@@ -1025,12 +1027,18 @@ function paintGrid(gridId, emptyId, rows, canDelete){
   });
 }
 
-function openBig(rkey){
+/**
+ * 크게 보기 — 원본(큰 장)이 있으면 그것을 보여 줍니다.
+ * 내려받기는 두 가지입니다. 1365에 붙이는 것은 작은 장,
+ * 워크숍 영상처럼 크게 쓰실 때는 원본.
+ */
+function openBig(rkey, big){
   var lb = document.createElement('div');
   lb.className = 'lightbox';
-  lb.innerHTML = '<img src="' + esc(photoUrl(rkey)) + '" alt="">'
+  lb.innerHTML = '<img src="' + esc(photoUrl(big || rkey)) + '" alt="">'
     + '<div class="row">'
     +   '<a href="' + esc(photoUrl(rkey, true)) + '">' + t('phDown') + '</a>'
+    +   (big ? '<a href="' + esc(photoUrl(big, true)) + '">' + t('phOrig') + '</a>' : '')
     +   '<button type="button">' + t('phClose') + '</button>'
     + '</div>';
   lb.addEventListener('click', function(ev){

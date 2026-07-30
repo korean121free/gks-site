@@ -7,7 +7,7 @@
  *   POST /session/end    수업 종료 기록 (분·재접속·진도 메모)
  *   POST /me             선생님 방 한 번에 불러오기 (기록·매칭표·메시지·사진)
  *   POST /note           본부에 한마디 / 휴식 신청
- *   POST /photo          사진 올리기 (R2)
+ *   POST /photo          사진 올리기 (R2가 켜져 있으면 R2, 아니면 D1)
  *   GET  /photo/get?k=   사진 보기·내려받기 (무작위 파일 이름이 열쇠)
  *   POST /photo/delete   내 사진 지우기
  *   GET  /weekly         주간 현황 (?key=ADMIN_KEY)
@@ -317,7 +317,7 @@ async function handleMe(request, env, origin) {
     ).bind(me, name).all(),
 
     env.DB.prepare(
-      `SELECT id, day, taken_at, partner, kind, rkey, caption, bytes
+      `SELECT id, day, taken_at, partner, kind, rkey, rkey_big, caption, bytes
          FROM photo WHERE me = ? AND me_name = ? ORDER BY COALESCE(taken_at, ts) DESC LIMIT 200`
     ).bind(me, name).all(),
 
@@ -631,9 +631,76 @@ function randKey() {
   return [...b].map(x => x.toString(36).padStart(2, '0')).join('').slice(0, 32);
 }
 
+/* ---------------- 사진 알맹이를 어디에 둘 것인가 ----------------
+ *
+ *   R2가 켜져 있으면 R2에, 아니면 D1(photo_blob)에 둡니다.
+ *   화면 쪽 코드는 어느 쪽인지 몰라도 됩니다 — 주소는 늘 /photo/get?k= 입니다.
+ *   나중에 R2를 켜면 새 사진부터 R2로 가고, 옛 사진은 D1에서 그대로 나옵니다.
+ */
+
+/** D1 한 줄에 담는 base64 글자 수 — 4의 배수여야 조각만 따로 풀 수 있습니다 */
+const BLOB_CHUNK = 64000;
+
+/** 한 번에 읽어 오는 조각 수 — 응답을 작게 나눠 흘려보내기 위한 것입니다 */
+const BLOB_PAGE = 6;
+
+function b64ToBytes(s) {
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function storePut(env, rkey, mime, b64, bin) {
+  if (env.PHOTOS) {
+    await env.PHOTOS.put(rkey, bin, {
+      httpMetadata: { contentType: mime, cacheControl: 'private, max-age=31536000' }
+    });
+    return;
+  }
+  const stmt = env.DB.prepare(
+    `INSERT INTO photo_blob (rkey, seq, mime, b64) VALUES (?,?,?,?)`
+  );
+  const rows = [];
+  for (let s = 0; s < b64.length; s += BLOB_CHUNK) {
+    rows.push(stmt.bind(rkey, rows.length, mime, b64.slice(s, s + BLOB_CHUNK)));
+  }
+  await env.DB.batch(rows);
+}
+
+async function storeDelete(env, rkey) {
+  if (!rkey) return;
+  if (env.PHOTOS) { try { await env.PHOTOS.delete(rkey); } catch (e) {} }
+  if (env.DB) {
+    try { await env.DB.prepare(`DELETE FROM photo_blob WHERE rkey = ?`).bind(rkey).run(); } catch (e) {}
+  }
+}
+
+/**
+ * D1에 담긴 사진을 조각째 흘려보냅니다.
+ * 한 번에 다 읽으면 응답이 커지므로 몇 조각씩 나눠 읽습니다.
+ */
+function d1Stream(env, rkey) {
+  let seq = 0;
+  return new ReadableStream({
+    async pull(controller) {
+      const r = await env.DB.prepare(
+        `SELECT seq, b64 FROM photo_blob WHERE rkey = ? AND seq >= ? ORDER BY seq LIMIT ?`
+      ).bind(rkey, seq, BLOB_PAGE).all();
+
+      if (!r.results.length) { controller.close(); return; }
+      for (const row of r.results) {
+        controller.enqueue(b64ToBytes(row.b64));
+        seq = row.seq + 1;
+      }
+      if (r.results.length < BLOB_PAGE) controller.close();
+    }
+  });
+}
+
 async function handlePhotoAdd(request, env, origin) {
   if (!isAllowed(env, origin) || !origin) return json({ error: 'FORBIDDEN' }, env, origin, 403);
-  if (!env.DB || !env.PHOTOS) return json({ error: 'NO_STORE' }, env, origin, 500);
+  if (!env.DB) return json({ error: 'NO_STORE' }, env, origin, 500);
 
   let b;
   try { b = await request.json(); } catch { return json({ error: 'BAD_JSON' }, env, origin, 400); }
@@ -664,28 +731,52 @@ async function handlePhotoAdd(request, env, origin) {
     b64 = m[2];
   }
 
-  const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const bin = b64ToBytes(b64);
   if (bin.byteLength > PHOTO_MAX_BYTES) return json({ error: 'TOO_BIG' }, env, origin, 413);
 
-  const rkey = randKey() + '.' + ext;
+  /**
+   * 원본용 큰 장 — 수업방에서 함께 보내 줍니다 (없으면 그냥 넘어갑니다).
+   * 목록·기록지에는 작은 장이 쓰이고, 큰 장은 크게 볼 때·워크숍 영상에 씁니다.
+   */
+  let bigKey = null, bigBin = null, bigMime = '', bigB64 = '';
+  if (kind !== 'report') {
+    const mb = String(b.dataUrlBig || '')
+      .match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+    if (mb) {
+      bigMime = mb[1];
+      bigB64 = mb[2];
+      bigBin = b64ToBytes(bigB64);
+      if (bigBin.byteLength > PHOTO_MAX_BYTES) { bigBin = null; bigB64 = ''; }
+    }
+  }
 
-  await env.PHOTOS.put(rkey, bin, {
-    httpMetadata: { contentType: mime, cacheControl: 'private, max-age=31536000' }
-  });
+  const rkey = randKey() + '.' + ext;
+  await storePut(env, rkey, mime, b64, bin);
+
+  if (bigBin) {
+    bigKey = randKey() + '.' + (bigMime === 'image/png' ? 'png' : bigMime === 'image/webp' ? 'webp' : 'jpg');
+    try {
+      await storePut(env, bigKey, bigMime, bigB64, bigBin);
+    } catch (e) {
+      // 원본을 못 담아도 증빙용 작은 장은 이미 담겼습니다 — 수업을 막지 않습니다.
+      bigKey = null;
+    }
+  }
 
   const takenAt = /^\d{4}-\d{2}-\d{2}T/.test(String(b.taken_at || ''))
     ? String(b.taken_at).slice(0, 32) : new Date().toISOString();
 
   const r = await env.DB.prepare(
-    `INSERT INTO photo (ts, day, taken_at, me, me_name, partner, kind, rkey, caption, bytes)
-     VALUES (?,?,?,?,?,?,?,?,?,?)`
+    `INSERT INTO photo (ts, day, taken_at, me, me_name, partner, kind, rkey, rkey_big, caption, bytes)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?)`
   ).bind(
     new Date().toISOString(), kstDay(), takenAt, me, name,
-    clean(b.partner, 40), kind, rkey,
-    String(b.caption || '').slice(0, 300), bin.byteLength
+    clean(b.partner, 40), kind, rkey, bigKey,
+    String(b.caption || '').slice(0, 300),
+    bin.byteLength + (bigBin ? bigBin.byteLength : 0)   // 실제로 차지하는 크기
   ).run();
 
-  return json({ ok: true, id: r.meta.last_row_id, rkey }, env, origin);
+  return json({ ok: true, id: r.meta.last_row_id, rkey, rkey_big: bigKey }, env, origin);
 }
 
 /**
@@ -694,18 +785,34 @@ async function handlePhotoAdd(request, env, origin) {
  * ?dl=1 을 붙이면 내려받기가 됩니다.
  */
 async function handlePhotoGet(url, env) {
-  if (!env.PHOTOS) return new Response('not configured', { status: 500 });
-
   const k = String(url.searchParams.get('k') || '');
   if (!/^[a-z0-9]{8,32}\.(jpg|jpeg|png|webp|hwp|hwpx|pdf|docx|xlsx)$/.test(k)) {
     return new Response('bad key', { status: 400 });
   }
 
-  const obj = await env.PHOTOS.get(k);
-  if (!obj) return new Response('not found', { status: 404 });
+  // R2가 켜져 있으면 그쪽을 먼저 봅니다. 없으면 D1에 담긴 조각을 이어 붙여 보냅니다.
+  let body = null, mime = 'image/jpeg';
+
+  if (env.PHOTOS) {
+    const obj = await env.PHOTOS.get(k);
+    if (obj) {
+      body = obj.body;
+      mime = obj.httpMetadata?.contentType || mime;
+    }
+  }
+  if (!body && env.DB) {
+    const head = await env.DB.prepare(
+      `SELECT mime FROM photo_blob WHERE rkey = ? AND seq = 0`
+    ).bind(k).first();
+    if (head) {
+      mime = head.mime || mime;
+      body = d1Stream(env, k);
+    }
+  }
+  if (!body) return new Response('not found', { status: 404 });
 
   const h = new Headers();
-  h.set('Content-Type', obj.httpMetadata?.contentType || 'image/jpeg');
+  h.set('Content-Type', mime);
   h.set('Cache-Control', 'private, max-age=31536000');
 
   if (url.searchParams.get('dl')) {
@@ -713,15 +820,20 @@ async function handlePhotoGet(url, env) {
     let fname = k;
     if (env.DB) {
       const row = await env.DB.prepare(
-        `SELECT me_name, partner, taken_at, day, kind, caption FROM photo WHERE rkey = ?`
-      ).bind(k).first();
+        `SELECT me_name, partner, taken_at, day, kind, caption FROM photo
+          WHERE rkey = ? OR rkey_big = ?`
+      ).bind(k, k).first();
       if (row) {
         const ext = k.split('.').pop();
         if (row.kind === 'report') {
           // 한글 보고서는 선생님이 붙인 이름을 그대로 살립니다
           fname = (row.me_name || '') + '-' + (row.caption || ('보고서.' + ext));
         } else {
-          const d = (row.taken_at || row.day || '').slice(0, 10).replace(/-/g, '.');
+          // 촬영 시각은 UTC로 담기므로 한국 시간으로 되돌립니다.
+          // (그대로 쓰면 한국 새벽 수업이 전날 이름으로 내려받아져, 사진에 새겨진 날짜와 어긋납니다)
+          const tms = Date.parse(row.taken_at || '');
+          const d = (isNaN(tms) ? (row.day || '') : kstDay(tms))
+            .slice(0, 10).replace(/-/g, '.');
           fname = (row.me_name || '') + d + (row.partner ? '_' + row.partner : '') + '.' + ext;
         }
       }
@@ -730,12 +842,12 @@ async function handlePhotoGet(url, env) {
     h.set('Content-Disposition',
       'attachment; filename="' + k + '"; filename*=UTF-8\'\'' + encodeURIComponent(fname));
   }
-  return new Response(obj.body, { headers: h });
+  return new Response(body, { headers: h });
 }
 
 async function handlePhotoDelete(request, env, origin) {
   if (!isAllowed(env, origin) || !origin) return json({ error: 'FORBIDDEN' }, env, origin, 403);
-  if (!env.DB || !env.PHOTOS) return json({ error: 'NO_STORE' }, env, origin, 500);
+  if (!env.DB) return json({ error: 'NO_STORE' }, env, origin, 500);
 
   let b;
   try { b = await request.json(); } catch { return json({ error: 'BAD_JSON' }, env, origin, 400); }
@@ -747,11 +859,13 @@ async function handlePhotoDelete(request, env, origin) {
 
   // 자기 사진만 지울 수 있습니다
   const row = await env.DB.prepare(
-    `SELECT rkey FROM photo WHERE id = ? AND me = ? AND me_name = ?`
+    `SELECT rkey, rkey_big FROM photo WHERE id = ? AND me = ? AND me_name = ?`
   ).bind(id, me, name).first();
   if (!row) return json({ error: 'NOT_FOUND' }, env, origin, 404);
 
-  await env.PHOTOS.delete(row.rkey);
+  // 작은 장과 원본을 함께 지웁니다 — 알맹이가 남아 자리를 차지하지 않게
+  await storeDelete(env, row.rkey);
+  await storeDelete(env, row.rkey_big);
   await env.DB.prepare(`DELETE FROM photo WHERE id = ?`).bind(id).run();
 
   return json({ ok: true }, env, origin);
@@ -1019,7 +1133,8 @@ export default {
         ok: true,
         configured: !!(env.LIVEKIT_API_KEY && env.LIVEKIT_API_SECRET),
         db: !!env.DB,
-        photos: !!env.PHOTOS
+        photos: !!(env.PHOTOS || env.DB),
+        store: env.PHOTOS ? 'r2' : (env.DB ? 'd1' : 'none')   // 사진 알맹이를 어디에 두는지
       }, env, origin);
     }
     if (path === '/token' && request.method === 'POST') {
