@@ -138,6 +138,26 @@ CREATE TABLE IF NOT EXISTS photo (
 CREATE INDEX IF NOT EXISTS idx_photo_me   ON photo(me, kind);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_photo_rkey ON photo(rkey);
 
+-- ===================================================================
+-- 표 5-1. photo_blob — 사진 알맹이
+--
+--   R2를 쓰지 않는 동안 사진을 여기에 둡니다.
+--   한 줄에 담을 수 있는 크기가 정해져 있어 조각으로 나눠 담습니다.
+--   나중에 R2를 켜면 이 표를 비우고 그쪽으로 옮기면 됩니다.
+--
+--   증빙 사진은 두 장이 만들어집니다.
+--     photo.rkey      증빙용 (작게 — 목록·기록지에 박힘)
+--     photo.rkey_big  원본용 (크게 — 워크숍 추억 영상 등에 씀)
+-- ===================================================================
+
+CREATE TABLE IF NOT EXISTS photo_blob (
+  rkey TEXT    NOT NULL,
+  seq  INTEGER NOT NULL,
+  mime TEXT    NOT NULL,
+  b64  TEXT    NOT NULL,
+  PRIMARY KEY (rkey, seq)
+);
+
 
 -- ===================================================================
 -- 표 6. class_log — 기계가 보는 기록 (기술 진단용)
