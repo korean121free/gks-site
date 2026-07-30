@@ -185,6 +185,41 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
 .btools .pen.on{box-shadow:0 0 0 2px #4472C4}
 .btools .sp{flex:1 1 auto}
 
+/* ---------- 사진 고르기 — 선생님 화면에만 뜹니다 ----------
+   찍은 것을 크게 보고, 마음에 들 때까지 다시 찍습니다.
+   고르지 않은 것은 어디에도 보내지 않고 그냥 버립니다. */
+.pick{
+  position:absolute; inset:0; z-index:11; background:#0a101c;
+  display:flex; flex-direction:column; gap:10px; padding:12px;
+}
+.pick .view{position:relative; flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center}
+.pick .view img{max-width:100%; max-height:100%; border-radius:12px; box-shadow:0 12px 34px rgba(0,0,0,.45)}
+.pick .x{
+  position:absolute; right:0; top:0; width:32px; height:32px; border-radius:50%;
+  background:rgba(15,23,37,.5); border:1px solid rgba(219,231,248,.18);
+  color:#93a8c8; font-size:.8rem; cursor:pointer;
+}
+.pick .x:hover{color:#dbe7f8; background:rgba(15,23,37,.8)}
+/* 찍은 것이 여러 장이면 여기서 고릅니다 — 줄바꿈으로 놓아 옆으로 밀 일이 없게 */
+.pick .shots{flex:0 0 auto; display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:2px}
+.pick .shots img{height:52px; border-radius:9px; border:2px solid transparent; opacity:.55; cursor:pointer}
+.pick .shots img.on{border-color:var(--orange); opacity:1}
+.pick .prow{flex:0 0 auto; display:flex; gap:10px}
+.pick .prow button{
+  flex:1 1 0; border:0; border-radius:99px; padding:15px 14px;
+  font-family:inherit; font-size:1rem; font-weight:700; cursor:pointer;
+}
+.pick .prow .again{background:rgba(255,255,255,.13); color:#dbe7f8; border:1px solid rgba(219,231,248,.3)}
+.pick .prow .ok{background:linear-gradient(135deg,#f0904a,var(--orange)); color:#fff}
+.pick .prow button[disabled]{opacity:.6; cursor:default}
+
+/* 3·2·1 — 두 사람 화면에 함께 뜹니다 (학생도 준비할 수 있게) */
+.count{
+  position:absolute; inset:0; z-index:10; pointer-events:none;
+  display:flex; align-items:center; justify-content:center;
+  font-size:5.4rem; font-weight:700; color:#fff; text-shadow:0 6px 26px rgba(0,0,0,.65);
+}
+
 .banner{
   /* 연결 상태 알약(top:12px) 아래에 놓습니다 — 안내가 떠도 연결 상태는 계속 보여야 합니다 */
   position:absolute; left:12px; right:12px; top:52px; z-index:9;
@@ -367,6 +402,22 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
       <div data-i18n="pwLead">학생이 괜찮다고 하면 사진이 저장됩니다.</div>
     </div>
 
+    <!-- 사진: 찍은 것을 보고 고릅니다 (선생님 화면에만) -->
+    <div class="pick hidden" id="pick">
+      <div class="view">
+        <img id="pickView" alt="">
+        <button class="x" type="button" onclick="pickClose()" aria-label="닫기">✕</button>
+      </div>
+      <div class="shots hidden" id="pickShots"></div>
+      <div class="prow">
+        <button type="button" class="again" onclick="pickAgain()" data-i18n="pkAgain">다시 찍기</button>
+        <button type="button" class="ok" id="pkOkBtn" onclick="pickSave()" data-i18n="pkOk">확인</button>
+      </div>
+    </div>
+
+    <!-- 사진 찍기 전 3·2·1 -->
+    <div class="count hidden" id="pickCount">3</div>
+
     <!-- 교재: 선생님 화면에만 뜹니다 -->
     <div class="banner hidden" id="bnrBooks">
       <h3 data-i18n="bkTitle">교재 열기</h3>
@@ -497,12 +548,16 @@ var I18N = {
   cLeave:{ko:'나가기', en:'Leave'},
 
   askTitle:{ko:'선생님이 수업 사진을 남기고 싶어 합니다', en:'Your teacher would like to save a class photo'},
-  askLead:{ko:'봉사 증빙에 쓰는 사진입니다. 지금 화면이 한 장 저장됩니다. 괜찮으신가요?',
-           en:'It is used as volunteer proof. One snapshot of this screen will be saved. Is that okay?'},
+  askLead:{ko:'봉사 증빙에 쓰는 사진입니다. 셋을 세고 찍은 뒤, 잘 나온 한 장만 저장합니다. 괜찮으신가요?',
+           en:'It is used as volunteer proof. We count to three, take a shot, and keep just one good photo. Is that okay?'},
   askYes:{ko:'괜찮습니다', en:'That’s fine'},
   askNo:{ko:'지금은 아니요', en:'Not now'},
   pwTitle:{ko:'학생에게 물어보는 중입니다', en:'Asking your student'},
   pwLead:{ko:'학생이 괜찮다고 하면 사진이 저장됩니다.', en:'The photo is saved once your student agrees.'},
+  pkAgain:{ko:'다시 찍기', en:'Take again'},
+  pkOk:{ko:'확인', en:'Use this'},
+  pkSaving:{ko:'저장하는 중', en:'Saving'},
+  photoStu:{ko:'사진 한 장을 저장했습니다.', en:'One photo has been saved.'},
   photoOk:{ko:'사진을 저장했습니다. 선생님 방에서 보실 수 있습니다.',
            en:'Photo saved. You can find it in your room.'},
   photoNo:{ko:'학생이 사진을 원하지 않았습니다. 저장하지 않았습니다.',
@@ -1300,8 +1355,16 @@ function recCleanup(){
 /* ==================================================================
    사진 — 학생 동의를 받고, 날짜·시간을 새겨서 저장합니다.
    1365 증빙은 날짜·시간이 보여야 인정되므로 이미지 자체에 새깁니다.
+
+   흐름은 사진관과 같습니다.
+     [사진] → 학생에게 물어봄 → 3·2·1 → 찰칵 → 보고 고름
+     마음에 안 들면 [다시 찍기]를 몇 번이든, 마음에 들면 [확인].
+   고르지 않은 것은 어디에도 보내지 않고 그냥 버립니다.
    ================================================================== */
-var photoBusy = false;
+var photoAsking = false;   /* 학생에게 물어보고 답을 기다리는 중 */
+var SHOTS = [];            /* 찍어 둔 것 — 브라우저 안에만 있습니다 */
+var SHOT_I = 0;            /* 지금 보고 있는 장 */
+var SHOT_MAX = 6;          /* 이보다 많이 찍으면 가장 오래된 것부터 버립니다 */
 
 function sendData(obj){
   if(!room) return;
@@ -1323,8 +1386,12 @@ function onData(payload){
   }
   if(d.t === 'photo_yes' && ROLE === 'teacher'){
     document.getElementById('bnrWaitPhoto').classList.add('hidden');
-    capturePhoto();
+    photoAsking = false;
+    shootNow();
   }
+  /* 학생 화면에도 3·2·1 이 뜹니다 — 준비하고 웃을 수 있게 */
+  if(d.t === 'photo_count' && ROLE !== 'teacher'){ runCount(null); }
+  if(d.t === 'photo_saved' && ROLE !== 'teacher'){ toast(t('photoStu')); }
   /* 칠판 */
   if(d.t === 'bd_open' && !bdOn){ openBoard(false); }
   if(d.t === 'bd_close' && bdOn){ closeBoard(false); }
@@ -1342,7 +1409,7 @@ function onData(payload){
 
   if(d.t === 'photo_no' && ROLE === 'teacher'){
     document.getElementById('bnrWaitPhoto').classList.add('hidden');
-    photoBusy = false;
+    photoAsking = false;
     toast(t('photoNo'));
     logEvent('photo_declined');
   }
@@ -1350,18 +1417,18 @@ function onData(payload){
 
 /* 선생님이 누릅니다 → 학생에게 물어봅니다 */
 function askPhoto(){
-  if(photoBusy) return;
+  if(photoAsking || SHOTS.length) return;
   if(!document.getElementById('remoteBox').querySelector('video')){
     toast(t('photoNoPeer')); return;
   }
-  photoBusy = true;
+  photoAsking = true;
   document.getElementById('bnrWaitPhoto').classList.remove('hidden');
   sendData({t:'photo_ask'});
   logEvent('photo_request');
   /* 학생이 답을 안 하면 25초 뒤 스스로 접습니다 */
   setTimeout(function(){
-    if(photoBusy){
-      photoBusy = false;
+    if(photoAsking){
+      photoAsking = false;
       document.getElementById('bnrWaitPhoto').classList.add('hidden');
     }
   }, 25000);
@@ -1374,34 +1441,135 @@ function photoAnswer(yes){
   logEvent(yes ? 'photo_consent' : 'photo_refuse');
 }
 
-/* 두 사람 화면을 한 장으로 합치고 아래에 날짜·시간을 새깁니다 */
-function capturePhoto(){
+/* 셋을 세고 찍습니다 — 학생 화면에도 같은 숫자가 뜹니다 */
+function shootNow(){
+  sendData({t:'photo_count'});
+  runCount(function(){
+    takeShot();
+    pickOpen();
+  });
+}
+
+/* 3 · 2 · 1 */
+function runCount(done){
+  var el = document.getElementById('pickCount');
+  var n = 3;
+  el.textContent = n;
+  el.classList.remove('hidden');
+  var iv = setInterval(function(){
+    n--;
+    if(n <= 0){
+      clearInterval(iv);
+      el.classList.add('hidden');
+      if(done) done();
+      return;
+    }
+    el.textContent = n;
+  }, 850);
+}
+
+/* 한 장 찍어 둡니다 — 아직 아무 데도 보내지 않습니다 */
+function takeShot(){
   var remote = document.getElementById('remoteBox').querySelector('video');
   var mine   = document.getElementById('myVideo');
-  if(!remote){ photoBusy = false; return; }
+  if(!remote) return;
 
   var now = new Date();
+  var cv = shotCanvas(remote, mine, now, 2);          /* 원본 크기로만 찍습니다 */
+  SHOTS.push({ url: cv.toDataURL('image/jpeg', 0.9), at: now });
+  if(SHOTS.length > SHOT_MAX) SHOTS.shift();          /* 오래된 것부터 버립니다 */
+  SHOT_I = SHOTS.length - 1;
+  logEvent('photo_shot');
+}
 
-  /* 크게 한 번 그리고, 그것을 줄여 증빙용 작은 장을 만듭니다.
-     두 장이 글자 한 획까지 똑같아야 증빙으로 다툼이 없습니다. */
-  var big = shotCanvas(remote, mine, now, 2);
+function pickOpen(){
+  document.getElementById('pick').classList.remove('hidden');
+  pickPaint();
+}
 
-  var small = document.createElement('canvas');
-  small.width = big.width / 2; small.height = big.height / 2;
-  var sg = small.getContext('2d');
-  sg.imageSmoothingQuality = 'high';
-  sg.drawImage(big, 0, 0, small.width, small.height);
+function pickPaint(){
+  var cur = SHOTS[SHOT_I];
+  if(!cur) return;
+  document.getElementById('pickView').src = cur.url;
 
-  apiPost('/photo', {
-    me:ME, name:MYNAME, partner:PARTNER, kind:'proof',
-    dataUrl:    small.toDataURL('image/jpeg', 0.86),   /* 목록·1365 기록지에 쓰는 장 */
-    dataUrlBig: big.toDataURL('image/jpeg', 0.9),      /* 원본 — 크게 보기·워크숍 영상 */
-    taken_at:now.toISOString(),
-    caption:'수업 증빙 · ' + fmtStamp(now)
+  /* 여러 장 찍었을 때만 고르는 줄이 나옵니다 */
+  var row = document.getElementById('pickShots');
+  row.classList.toggle('hidden', SHOTS.length < 2);
+  row.innerHTML = '';
+  SHOTS.forEach(function(s, i){
+    var im = document.createElement('img');
+    im.src = s.url;
+    im.alt = '';
+    if(i === SHOT_I) im.className = 'on';
+    im.onclick = function(){ SHOT_I = i; pickPaint(); };
+    row.appendChild(im);
+  });
+}
+
+/* 다시 찍기 — 잠깐 비켜서 두 사람이 자세를 잡을 수 있게 합니다 */
+function pickAgain(){
+  document.getElementById('pick').classList.add('hidden');
+  sendData({t:'photo_count'});
+  runCount(function(){
+    takeShot();
+    pickOpen();
+  });
+}
+
+/* 확인 — 고른 한 장만 보냅니다. 나머지는 그냥 버립니다 */
+function pickSave(){
+  var cur = SHOTS[SHOT_I];
+  if(!cur) return;
+
+  var btn = document.getElementById('pkOkBtn');
+  btn.disabled = true;
+  btn.textContent = t('pkSaving');
+
+  /* 보낼 때 증빙용 작은 장을 함께 만듭니다 — 선생님은 몰라도 되는 일입니다 */
+  shrinkShot(cur.url).then(function(small){
+    return apiPost('/photo', {
+      me:ME, name:MYNAME, partner:PARTNER, kind:'proof',
+      dataUrl:    small || cur.url,
+      dataUrlBig: small ? cur.url : '',
+      taken_at:   cur.at.toISOString(),
+      caption:    '수업 증빙 · ' + fmtStamp(cur.at)
+    });
   }).then(function(d){
-    photoBusy = false;
+    btn.disabled = false;
+    btn.textContent = t('pkOk');
+    if(d && d.ok){
+      sendData({t:'photo_saved'});
+      pickClose();
+    }
     toast(d && d.ok ? t('photoOk') : t('photoFail'));
     logEvent(d && d.ok ? 'photo_saved' : 'photo_save_fail');
+  });
+}
+
+/* 닫기 — 찍은 것을 모두 버립니다 */
+function pickClose(){
+  SHOTS = []; SHOT_I = 0;
+  document.getElementById('pick').classList.add('hidden');
+  document.getElementById('pickView').src = '';
+  document.getElementById('pickShots').innerHTML = '';
+}
+
+/* 원본을 반으로 줄여 증빙용 장을 만듭니다 (글자까지 그대로 작아집니다) */
+function shrinkShot(url){
+  return new Promise(function(res){
+    var im = new Image();
+    im.onload = function(){
+      try{
+        var cv = document.createElement('canvas');
+        cv.width = Math.round(im.width / 2); cv.height = Math.round(im.height / 2);
+        var g = cv.getContext('2d');
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(im, 0, 0, cv.width, cv.height);
+        res(cv.toDataURL('image/jpeg', 0.86));
+      }catch(e){ res(null); }
+    };
+    im.onerror = function(){ res(null); };
+    im.src = url;
   });
 }
 

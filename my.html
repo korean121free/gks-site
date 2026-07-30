@@ -365,8 +365,8 @@ details[open] summary::after{content:'▴'}
       <div class="eyebrow" data-i18n="phEyebrow">사진 보관함 · PHOTOS</div>
       <h2 style="font-size:1.18rem" data-i18n="phTitle">수업 사진</h2>
       <p class="muted" style="margin:.4rem 0 12px" data-i18n="phLead">
-        수업 중 <b>[사진]</b>을 누르면 학생에게 물어본 뒤, 날짜와 시간이 새겨진 사진이 여기에 쌓입니다.
-        1365 증빙에는 이 사진을 내려받아 쓰시면 됩니다.
+        수업 중 <b>[사진]</b>을 눌러 고른 한 장이 여기에 쌓입니다.
+        날짜와 시간이 새겨져 있으니, 1365에 낼 때는 <b>[내려받기]</b>만 누르시면 됩니다.
       </p>
 
       <div class="tabs">
@@ -536,15 +536,14 @@ var I18N = {
 
   phEyebrow:{ko:'사진 보관함 · PHOTOS', en:'PHOTOS'},
   phTitle:{ko:'수업 사진', en:'Class photos'},
-  phLead:{ko:'수업 중 <b>[사진]</b>을 누르면 학생에게 물어본 뒤, 날짜와 시간이 새겨진 사진이 여기에 쌓입니다. 1365 증빙에는 이 사진을 내려받아 쓰시면 됩니다.',
-          en:'Tap <b>[Photo]</b> during class — after your student agrees, a snapshot stamped with date and time is saved here. Download these for volunteer proof.'},
+  phLead:{ko:'수업 중 <b>[사진]</b>을 눌러 고른 한 장이 여기에 쌓입니다. 날짜와 시간이 새겨져 있으니, 1365에 낼 때는 <b>[내려받기]</b>만 누르시면 됩니다.',
+          en:'The photo you picked during class is kept here, stamped with date and time. For volunteer proof, just tap <b>[Download]</b>.'},
   pkProof:{ko:'수업 증빙', en:'Proof'},
   pkFree:{ko:'자유 사진', en:'Free'},
   emptyPhotos:{ko:'아직 사진이 없습니다.', en:'No photos yet.'},
   upFree:{ko:'내 컴퓨터에서 사진 올리기', en:'Upload from my computer'},
   phView:{ko:'크게', en:'View'},
   phDown:{ko:'내려받기', en:'Download'},
-  phOrig:{ko:'원본 내려받기', en:'Download original'},
   phDel:{ko:'지우기', en:'Delete'},
   phClose:{ko:'닫기', en:'Close'},
   phDelAsk:{ko:'이 사진을 지울까요? 되돌릴 수 없습니다.', en:'Delete this photo? This cannot be undone.'},
@@ -1028,9 +1027,9 @@ function paintGrid(gridId, emptyId, rows, canDelete){
 }
 
 /**
- * 크게 보기 — 원본(큰 장)이 있으면 그것을 보여 줍니다.
- * 내려받기는 두 가지입니다. 1365에 붙이는 것은 작은 장,
- * 워크숍 영상처럼 크게 쓰실 때는 원본.
+ * 크게 보기 — 화면에는 화질 좋은 쪽을 띄우고,
+ * 내려받기는 1365에 붙이는 장 하나뿐입니다.
+ * 선생님이 어느 장인지 가릴 일이 없어야 합니다.
  */
 function openBig(rkey, big){
   var lb = document.createElement('div');
@@ -1038,7 +1037,6 @@ function openBig(rkey, big){
   lb.innerHTML = '<img src="' + esc(photoUrl(big || rkey)) + '" alt="">'
     + '<div class="row">'
     +   '<a href="' + esc(photoUrl(rkey, true)) + '">' + t('phDown') + '</a>'
-    +   (big ? '<a href="' + esc(photoUrl(big, true)) + '">' + t('phOrig') + '</a>' : '')
     +   '<button type="button">' + t('phClose') + '</button>'
     + '</div>';
   lb.addEventListener('click', function(ev){

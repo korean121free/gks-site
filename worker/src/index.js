@@ -10,6 +10,7 @@
  *   POST /photo          사진 올리기 (R2가 켜져 있으면 R2, 아니면 D1)
  *   GET  /photo/get?k=   사진 보기·내려받기 (무작위 파일 이름이 열쇠)
  *   POST /photo/delete   내 사진 지우기
+ *   GET  /photos         사진 원본 모아보기 (?key=ADMIN_KEY) — 본부만
  *   GET  /weekly         주간 현황 (?key=ADMIN_KEY)
  *   GET  /report         월간 리포트 (?key=ADMIN_KEY)
  *   GET  /notes          선생님 메시지 목록 (?key=ADMIN_KEY)
@@ -871,6 +872,35 @@ async function handlePhotoDelete(request, env, origin) {
   return json({ ok: true }, env, origin);
 }
 
+/**
+ * 사진 원본 모아보기 — 본부 전용.
+ *
+ * 선생님 방에는 1365에 낼 한 장만 보입니다. 원본(큰 장)은 여기에만 나옵니다.
+ * 나중에 워크숍 추억 영상을 만들 때 쓰려고 모아 두는 곳입니다.
+ */
+async function handlePhotosAdmin(url, env, origin) {
+  if (!env.ADMIN_KEY || url.searchParams.get('key') !== env.ADMIN_KEY) {
+    return json({ error: 'FORBIDDEN' }, env, origin, 403);
+  }
+  if (!env.DB) return json({ error: 'NO_DB' }, env, origin, 500);
+
+  const ym = (url.searchParams.get('month') || kstDay().slice(0, 7)).slice(0, 7);
+
+  const r = await env.DB.prepare(
+    `SELECT id, day, taken_at, me_name, partner, kind, rkey, rkey_big, bytes
+       FROM photo
+      WHERE kind IN ('proof','free') AND day LIKE ?
+      ORDER BY COALESCE(taken_at, ts) DESC LIMIT 400`
+  ).bind(ym + '%').all();
+
+  return json({
+    month: ym,
+    rows: r.results,
+    count: r.results.length,
+    bytes: r.results.reduce((s, p) => s + (p.bytes || 0), 0)
+  }, env, origin);
+}
+
 /** 본부가 보는 목록 + 확인 표시 */
 async function handleNotesAdmin(url, env, origin) {
   if (!env.ADMIN_KEY || url.searchParams.get('key') !== env.ADMIN_KEY) {
@@ -1178,6 +1208,9 @@ export default {
     }
     if (path === '/note/seen' && request.method === 'POST') {
       return handleNoteSeen(request, url, env, origin);
+    }
+    if (path === '/photos' && request.method === 'GET') {
+      return handlePhotosAdmin(url, env, origin);
     }
     if (path === '/notes' && request.method === 'GET') {
       return handleNotesAdmin(url, env, origin);

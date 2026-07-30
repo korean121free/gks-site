@@ -152,6 +152,14 @@ table.f65 td:last-child{white-space:normal; min-width:180px; text-align:left}
   cursor:pointer; text-decoration:none;
 }
 .fmacts .nophoto{font-size:.82rem; color:#a8511b}
+/* 사진 원본 — 누르면 원본이 내려받아집니다 */
+.pgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:14px}
+.pgrid figure{margin:0; background:var(--bg2); border-radius:12px; overflow:hidden; border:1px solid var(--line)}
+.pgrid img{width:100%; aspect-ratio:20/9; object-fit:cover; display:block; background:#dde5f1}
+.pgrid figcaption{padding:8px 10px; font-size:.76rem; color:var(--muted); line-height:1.45}
+.pgrid figcaption b{color:var(--ink); font-weight:700}
+.pgrid a{display:block; text-align:center; padding:8px; font-size:.78rem; color:var(--blue-d);
+         text-decoration:none; border-top:1px solid var(--line)}
 .foot{max-width:720px; margin:26px auto 0; padding:0 18px; text-align:center}
 .foot small{color:var(--muted); font-size:.78rem}
 @media (max-width:420px){ .card{padding:19px 17px} .num b{font-size:1.35rem} }
@@ -285,6 +293,27 @@ table.f65 td:last-child{white-space:normal; min-width:180px; text-align:left}
       <button class="btn orange hidden" id="btnFmDone" onclick="markSubmitted()">성남시에 보냈음으로 표시</button>
       <div id="fmMsg" class="msg"></div>
       <div id="fmList" style="margin-top:6px"></div>
+    </div>
+
+    <!-- ========== 사진 원본 (본부만) ========== -->
+    <div class="card sec">
+      <div class="eyebrow">사진 · 원본 보관</div>
+      <h2 style="font-size:1.18rem">그 달 수업 사진</h2>
+      <p class="muted" style="margin:.35rem 0 0">
+        선생님 방에는 1365에 낼 한 장만 보입니다. <b>원본은 여기에만</b> 있습니다 —
+        나중에 워크숍 영상 만들 때 쓰시라고 모아 둔 곳입니다.
+      </p>
+
+      <div class="nav" style="margin-top:14px">
+        <button onclick="movePhMonth(-1)">← 지난달</button>
+        <div class="range"><span id="phMonth">—</span><small id="phSub"></small></div>
+        <button id="btnPhNext" onclick="movePhMonth(1)">다음달 →</button>
+      </div>
+
+      <button class="btn ghost sm" id="btnPh" onclick="loadPhotos()">이번 달 사진 보기</button>
+      <div id="phMsg" class="msg"></div>
+      <div class="pgrid" id="phGrid"></div>
+      <div class="empty hidden" id="phEmpty">그 달에 찍은 사진이 없습니다.</div>
     </div>
 
     <div class="card">
@@ -664,6 +693,62 @@ function markSubmitted(){
     el.textContent = '표시했습니다.';
     loadForm();
   }).catch(function(){ msg('fmMsg','표시하지 못했습니다.'); });
+}
+
+/* ================= 사진 원본 (본부만) ================= */
+var PH_MONTH = '';
+
+function movePhMonth(delta){
+  var p = (PH_MONTH || kstToday().slice(0,7)).split('-');
+  var d = new Date(Date.UTC(Number(p[0]), Number(p[1]) - 1 + delta, 1));
+  PH_MONTH = d.toISOString().slice(0,7);
+  loadPhotos();
+}
+
+function loadPhotos(){
+  if(!PH_MONTH) PH_MONTH = kstToday().slice(0,7);
+  msg('phMsg','');
+  busy('btnPh', true);
+  var url = CLASS_API.replace(/\/$/,'') + '/photos'
+          + '?key=' + encodeURIComponent(KEY) + '&month=' + encodeURIComponent(PH_MONTH);
+  fetch(url).then(function(r){ return r.json(); }).then(function(d){
+    busy('btnPh', false, '다시 불러오기');
+    if(!d || d.error){ msg('phMsg','불러오지 못했습니다.'); return; }
+    renderPhotos(d);
+  }).catch(function(){
+    busy('btnPh', false, '이번 달 사진 보기');
+    msg('phMsg','연결이 잘 안 됐어요. 잠시 후 다시 눌러 주세요.');
+  });
+}
+
+function renderPhotos(d){
+  var p = d.month.split('-');
+  document.getElementById('phMonth').textContent = Number(p[0]) + '년 ' + Number(p[1]) + '월';
+  document.getElementById('phSub').textContent =
+    d.count ? (d.count + '장 · ' + Math.round(d.bytes/1024/1024*10)/10 + 'MB') : '';
+  document.getElementById('btnPhNext').disabled = (d.month >= kstToday().slice(0,7));
+  document.getElementById('phEmpty').classList.toggle('hidden', d.count > 0);
+
+  var url = function(k, dl){
+    return CLASS_API.replace(/\/$/,'') + '/photo/get?k=' + encodeURIComponent(k) + (dl ? '&dl=1' : '');
+  };
+
+  var box = document.getElementById('phGrid');
+  box.innerHTML = '';
+  (d.rows || []).forEach(function(p){
+    var fig = document.createElement('figure');
+    /* 목록에는 가벼운 장을 띄우고, 내려받기는 원본이 있으면 원본으로 */
+    fig.innerHTML =
+        '<img src="' + esc(url(p.rkey)) + '" alt="" loading="lazy">'
+      + '<figcaption><b>' + esc(p.me_name || '') + '</b>'
+      +   (p.partner ? ' · ' + esc(p.partner) : '')
+      +   '<br>' + esc(fmtDay(p.day))
+      +   (p.rkey_big ? '' : ' · 원본 없음')
+      + '</figcaption>'
+      + '<a href="' + esc(url(p.rkey_big || p.rkey, true)) + '">'
+      +   (p.rkey_big ? '원본 내려받기' : '내려받기') + '</a>';
+    box.appendChild(fig);
+  });
 }
 
 /* 한글에 붙여넣으면 표로 들어갑니다 (HTML + 탭 구분 텍스트를 함께 올립니다) */
