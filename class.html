@@ -14,6 +14,14 @@
    =================================================================== */
 var LK_URL    = "wss://gks-577c6bjr.livekit.cloud";
 var CLASS_API = "https://gks-class.korean121free.workers.dev";
+
+/* 교재 공유폴더 — 선생님이 새 창에서 열고, 그 창을 [교재 보이기]로 학생에게 보여줍니다.
+   학생이 직접 여는 것이 아니므로 폴더는 비공개여도 됩니다. */
+var BOOK_FOLDER = "https://drive.google.com/drive/folders/1CC0LZ6W2DwRuOWa9df251vQ_uhri5uy4";
+
+/* 자주 쓰는 교재를 여기에 늘리면 목록에 함께 나옵니다.
+   예: { name:'입문 1과', url:'https://drive.google.com/file/d/.../view' } */
+var BOOKS = [];
 </script>
 
 <!-- 버전을 2로 고정합니다 — 다음 큰 버전이 나와도 수업이 갑자기 안 되는 일이 없도록 -->
@@ -328,6 +336,13 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
       <div data-i18n="pwLead">학생이 괜찮다고 하면 사진이 저장됩니다.</div>
     </div>
 
+    <!-- 교재: 선생님 화면에만 뜹니다 -->
+    <div class="banner hidden" id="bnrBooks">
+      <h3 data-i18n="bkTitle">교재 열기</h3>
+      <div data-i18n="bkLead">새 창에서 열립니다. 그 창을 [교재 보이기]로 학생에게 보여주세요.</div>
+      <div class="row" id="bookRow"></div>
+    </div>
+
     <!-- 누를 것이 없는 안내는 버튼 없이 스스로 사라집니다 -->
     <div class="banner hidden" id="bnrAudio">
       <h3 data-i18n="apTitle">소리를 지키기 위해 영상을 껐습니다</h3>
@@ -347,6 +362,12 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
     </button>
     <button class="ctl" id="cAudio" onclick="toggleAudioFirst()">
       <span class="ico">🔊</span><span data-i18n="cAudio">음성 우선</span>
+    </button>
+    <button class="ctl hidden" id="cBook" onclick="toggleBooks()">
+      <span class="ico">📚</span><span data-i18n="cBook">교재</span>
+    </button>
+    <button class="ctl hidden" id="cRec" onclick="toggleRec()">
+      <span class="ico" id="cRecIco">⏺</span><span data-i18n="cRec">녹화</span>
     </button>
     <button class="ctl hidden" id="cPhoto" onclick="askPhoto()">
       <span class="ico">📸</span><span data-i18n="cPhoto">사진</span>
@@ -417,6 +438,19 @@ var I18N = {
   cMic:{ko:'마이크', en:'Mic'},
   cCam:{ko:'카메라', en:'Camera'},
   cShare:{ko:'교재 보이기', en:'Share'},
+  cBook:{ko:'교재', en:'Books'},
+  cRec:{ko:'녹화', en:'Record'},
+  bkTitle:{ko:'교재 열기', en:'Open materials'},
+  bkLead:{ko:'새 창에서 열립니다. 그 창을 [교재 보이기]로 학생에게 보여주세요.',
+          en:'Opens in a new tab. Then show that tab with [Share].'},
+  bkFolder:{ko:'공유폴더 열기', en:'Open shared folder'},
+  bkClose:{ko:'닫기', en:'Close'},
+  recOn:{ko:'녹화를 시작했습니다 · 이 창을 닫지 마세요', en:'Recording started - keep this tab open'},
+  recOff:{ko:'녹화가 끝났습니다 · 파일이 내려받기 됩니다', en:'Recording stopped - the file is downloading'},
+  recNoPeer:{ko:'학생이 들어온 뒤에 녹화할 수 있습니다', en:'You can record once the student has joined'},
+  recFail:{ko:'이 브라우저에서는 녹화가 안 됩니다 · 크롬을 쓰세요', en:'Recording is not supported here - please use Chrome'},
+  popupBlocked:{ko:'새 창이 막혔습니다 · 주소창 오른쪽의 차단 표시를 눌러 허용해 주세요',
+                en:'Pop-up blocked - allow pop-ups from the address bar'},
   cAudio:{ko:'음성 우선', en:'Audio first'},
   cPhoto:{ko:'사진', en:'Photo'},
   cLeave:{ko:'나가기', en:'Leave'},
@@ -515,7 +549,8 @@ function sessionStart(){
 function sessionEnd(memo, useBeacon){
   if(!SID) return Promise.resolve();
   return apiPost('/session/end', {
-    sid:SID, minutes:lastMinutes, reconnects:reconnects, recorded:0, memo:memo||''
+    sid:SID, minutes:lastMinutes, reconnects:reconnects,
+    recorded: recDidRun ? 1 : 0, memo:memo||''
   }, useBeacon);
 }
 
@@ -829,6 +864,12 @@ function paintWaiting(){
   /* 사진은 선생님만, 학생이 들어온 뒤에만 */
   document.getElementById('cPhoto')
     .classList.toggle('hidden', !(ROLE === 'teacher' && hasRemote && ME));
+  /* 교재는 선생님만 (학생에게는 화면 공유로 보여줍니다) */
+  document.getElementById('cBook')
+    .classList.toggle('hidden', ROLE !== 'teacher');
+  /* 녹화도 선생님만, 학생이 들어온 뒤에만 */
+  document.getElementById('cRec')
+    .classList.toggle('hidden', !(ROLE === 'teacher' && hasRemote));
 }
 
 /* ---------- 연결 품질 → 자동 음성 우선 ---------- */
@@ -924,6 +965,153 @@ function applyAudioFirst(on){
   document.getElementById('cCam').classList.toggle('off', on);
 }
 function hideAudioBanner(){ document.getElementById('bnrAudio').classList.add('hidden'); }
+
+/* ==================================================================
+   교재 · 칠판 · 녹화
+   ================================================================== */
+
+/* ---------- 교재 — 선생님이 새 창에서 열고, 그 창을 공유합니다 ---------- */
+function toggleBooks(){
+  var b = document.getElementById('bnrBooks');
+  if(!b.classList.contains('hidden')){ b.classList.add('hidden'); return; }
+
+  var row = document.getElementById('bookRow');
+  row.innerHTML = '';
+  BOOKS.forEach(function(bk){
+    var el = document.createElement('button');
+    el.textContent = bk.name;
+    el.onclick = function(){ openTab(bk.url); };
+    row.appendChild(el);
+  });
+  var f = document.createElement('button');
+  f.textContent = t('bkFolder');
+  f.onclick = function(){ openTab(BOOK_FOLDER); };
+  row.appendChild(f);
+
+  var c = document.createElement('button');
+  c.className = 'ghost';
+  c.textContent = t('bkClose');
+  c.onclick = function(){ b.classList.add('hidden'); };
+  row.appendChild(c);
+
+  b.classList.remove('hidden');
+  logEvent('books_open');
+}
+
+function openTab(url){
+  var w = window.open(url, '_blank', 'noopener');
+  if(!w) toast(t('popupBlocked'));
+}
+
+/* ---------- 녹화 — 선생님 컴퓨터에만 저장됩니다 ----------
+   서버로 올라가지 않습니다. 창을 닫으면 그때까지의 것도 사라집니다. */
+var rec = null, recTimer = null, recCtx = null, recChunks = [], recDidRun = false;
+
+function toggleRec(){ rec ? stopRec() : startRec(); }
+
+function startRec(){
+  if(typeof MediaRecorder === 'undefined'){ toast(t('recFail')); return; }
+  var remote = document.getElementById('remoteBox').querySelector('video');
+  if(!remote){ toast(t('recNoPeer')); return; }
+  var mine = document.getElementById('myVideo');
+
+  /* 상대 화면을 크게, 내 화면을 오른쪽 아래 작게 겹쳐 그립니다 */
+  var W = 1280, H = 720, PW = 300, PH = 169, PAD = 18;
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var g = cv.getContext('2d');
+
+  recTimer = setInterval(function(){
+    g.fillStyle = '#0f1725'; g.fillRect(0, 0, W, H);
+    drawPane(g, remote, 0, 0, W, H, false);
+    g.fillStyle = 'rgba(15,23,37,.9)';
+    g.fillRect(W - PW - PAD - 3, H - PH - PAD - 3, PW + 6, PH + 6);
+    drawPane(g, mine, W - PW - PAD, H - PH - PAD, PW, PH, true);
+  }, 1000 / 15);
+
+  var stream = cv.captureStream(15);
+
+  /* 두 사람 목소리를 한 갈래로 섞습니다 */
+  try{
+    recCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var dest = recCtx.createMediaStreamDestination(), added = 0;
+    recAudioTracks().forEach(function(tr){
+      try{
+        recCtx.createMediaStreamSource(new MediaStream([tr])).connect(dest);
+        added++;
+      }catch(e){}
+    });
+    if(added) dest.stream.getAudioTracks().forEach(function(tr){ stream.addTrack(tr); });
+  }catch(e){}
+
+  var type = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    .filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0];
+  try{
+    rec = new MediaRecorder(stream, type ? { mimeType:type, videoBitsPerSecond:1200000 } : undefined);
+  }catch(e){ toast(t('recFail')); recCleanup(); return; }
+
+  recChunks = [];
+  rec.ondataavailable = function(e){ if(e.data && e.data.size) recChunks.push(e.data); };
+  rec.onstop = recSave;
+  rec.start(1000);
+  recDidRun = true;
+
+  document.getElementById('cRec').classList.add('on');
+  document.getElementById('cRecIco').textContent = '⏹';
+  toast(t('recOn'));
+  logEvent('rec_on');
+}
+
+function recAudioTracks(){
+  var out = [];
+  if(!room) return out;
+  var lp = room.localParticipant.getTrackPublication(LK.Track.Source.Microphone);
+  if(lp && lp.track && lp.track.mediaStreamTrack) out.push(lp.track.mediaStreamTrack);
+  room.remoteParticipants.forEach(function(p){
+    p.trackPublications.forEach(function(pub){
+      if(pub.kind === LK.Track.Kind.Audio && pub.track && pub.track.mediaStreamTrack){
+        out.push(pub.track.mediaStreamTrack);
+      }
+    });
+  });
+  return out;
+}
+
+function stopRec(){
+  if(rec && rec.state !== 'inactive'){ try{ rec.stop(); }catch(e){} }
+  document.getElementById('cRec').classList.remove('on');
+  document.getElementById('cRecIco').textContent = '⏺';
+  toast(t('recOff'));
+  logEvent('rec_off');
+}
+
+function recSave(){
+  var blob = new Blob(recChunks, { type:'video/webm' });
+  recChunks = [];
+  recCleanup();
+  if(blob.size < 1000) return;
+
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = recName();
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 5000);
+}
+
+function recName(){
+  var d = new Date(), p = function(n){ return String(n).padStart(2, '0'); };
+  var who = (ROLE === 'teacher' ? PARTNER : MYNAME) || '수업';
+  return 'GKS수업_' + who + '_' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate())
+       + '_' + p(d.getHours()) + p(d.getMinutes()) + '.webm';
+}
+
+function recCleanup(){
+  if(recTimer){ clearInterval(recTimer); recTimer = null; }
+  if(recCtx){ try{ recCtx.close(); }catch(e){} recCtx = null; }
+  rec = null;
+}
 
 /* ==================================================================
    사진 — 학생 동의를 받고, 날짜·시간을 새겨서 저장합니다.
@@ -1111,6 +1299,7 @@ function goFallback(){
 
 /* ---------- 나가기 ---------- */
 function leaveRoom(){
+  if(rec) stopRec();   /* 녹화 중이었으면 파일부터 건집니다 */
   lastMinutes = joinedAt ? Math.max(1, Math.round((Date.now()-joinedAt)/60000)) : 0;
   logEvent('left', lastMinutes);
   if(timeTimer){ clearInterval(timeTimer); timeTimer=null; }
