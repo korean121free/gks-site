@@ -2,22 +2,28 @@ name = "gks-class"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
 
-# ★ wrangler d1 create gks-class-log 실행 후 나온 database_id를 여기에 붙여넣기
+# GKS 전용 Cloudflare 계정 (korean121free@gmail.com)
+# 이중 잠금 — 다른 계정으로 배포하려 하면 wrangler가 거부합니다
+account_id = "ef455f05c07e1a9a08d899ea85d560c3"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "gks-class-log"
-database_id = "여기에-database_id-붙여넣기"
+database_id = "1f336c5e-c7c9-480b-a5a0-c3a2c3c32939"
 
-# 사진 보관함 — wrangler r2 bucket create gks-photos
-[[r2_buckets]]
-binding = "PHOTOS"
-bucket_name = "gks-photos"
+# 사진 보관함 — 아직 꺼져 있습니다.
+# Cloudflare 대시보드에서 R2를 한 번 켠 뒤(계정당 1회),
+#   worker\wr.bat r2 bucket create gks-photos
+# 를 실행하고 아래 세 줄의 # 을 지우면 사진 기능이 살아납니다.
+# [[r2_buckets]]
+# binding = "PHOTOS"
+# bucket_name = "gks-photos"
 
 [vars]
 # 이 주소에서 온 요청만 받습니다 (자체 도메인이 생기면 여기에 추가)
 ALLOWED_ORIGINS = "https://gks-site-fie.pages.dev,http://localhost:8788"
 # 참고용 — 실제 접속 주소는 class.html의 LK_URL을 씁니다
-LIVEKIT_URL = ""
+LIVEKIT_URL = "wss://gks-577c6bjr.livekit.cloud"
 
 # 비밀값은 여기 쓰지 않습니다. 터미널에서 따로 넣습니다:
 #   wrangler secret put LIVEKIT_API_KEY

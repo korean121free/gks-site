@@ -1,1 +1,17 @@
 .claude/
+
+# 비밀값 — 절대 올라가면 안 됩니다
+.cf-token
+*.token
+.env
+.dev.vars
+worker/secrets-temp.txt
+
+# wrangler 작업 찌꺼기
+.wrangler/
+node_modules/
+
+# 1365 도구가 만드는 것
+tools/제출/
+tools/__pycache__/
+tools/1365서식.xlsx
