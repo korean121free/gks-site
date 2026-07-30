@@ -1,0 +1,25 @@
+name = "gks-class"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+# ★ wrangler d1 create gks-class-log 실행 후 나온 database_id를 여기에 붙여넣기
+[[d1_databases]]
+binding = "DB"
+database_name = "gks-class-log"
+database_id = "여기에-database_id-붙여넣기"
+
+# 사진 보관함 — wrangler r2 bucket create gks-photos
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "gks-photos"
+
+[vars]
+# 이 주소에서 온 요청만 받습니다 (자체 도메인이 생기면 여기에 추가)
+ALLOWED_ORIGINS = "https://gks-site-fie.pages.dev,http://localhost:8788"
+# 참고용 — 실제 접속 주소는 class.html의 LK_URL을 씁니다
+LIVEKIT_URL = ""
+
+# 비밀값은 여기 쓰지 않습니다. 터미널에서 따로 넣습니다:
+#   wrangler secret put LIVEKIT_API_KEY
+#   wrangler secret put LIVEKIT_API_SECRET
+#   wrangler secret put ADMIN_KEY

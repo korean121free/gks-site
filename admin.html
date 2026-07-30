@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>주간 수업 현황 | 글로벌한국어나눔</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon-32.png" sizes="32x32">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script>
+/* ★ class.html과 같은 주소 (worker/README.md 참고) */
+var CLASS_API = "";   // 예: https://gks-class.korean121free.workers.dev
+</script>
+
+<style>
+:root{
+  --blue:#4472C4; --blue-d:#37589f; --orange:#ED7D31;
+  --navy:#2e4d8f; --ink:#2e4d8f; --body:#3d5680; --muted:#7288ab;
+  --bg:#f8fafd; --bg2:#eef3fa; --line:#dbe7f8; --white:#fff;
+  --ok:#2e7d5b; --warn:#b4611b; --red:#a8412f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--body);
+  font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+  font-size:16px; line-height:1.65; word-break:keep-all; padding-bottom:48px;
+}
+h1,h2,h3{font-family:'Gowun Batang','Noto Sans KR',serif; color:var(--ink); margin:0; font-weight:700}
+a{color:var(--blue-d)}
+.hidden{display:none !important}
+
+.top{background:var(--white); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20}
+.top-in{
+  max-width:720px; margin:0 auto; padding:12px 18px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none}
+.brand-mark{height:38px; width:auto; display:block}
+.brand-word{
+  font-family:'Gowun Batang',serif; color:var(--navy); font-size:1.06rem;
+  font-weight:700; letter-spacing:-.02em; line-height:1.2;
+}
+.brand-word b{color:var(--orange); font-weight:700}
+.brand-en{
+  display:block; font-family:'Noto Sans KR',sans-serif; font-weight:500;
+  font-size:.56rem; letter-spacing:2px; color:var(--muted);
+}
+.adm{font-size:.72rem; color:var(--muted); letter-spacing:.1em; font-weight:700}
+@media (max-width:400px){ .brand-mark{height:32px} .brand-word{font-size:.96rem} }
+
+.wrap{max-width:720px; margin:0 auto; padding:22px 18px 0}
+.card{
+  background:var(--white); border:1px solid var(--line); border-radius:18px;
+  padding:22px; margin-bottom:16px;
+}
+.eyebrow{
+  font-size:.72rem; letter-spacing:.14em; color:var(--orange);
+  font-weight:700; text-transform:uppercase; margin-bottom:8px;
+}
+.muted{color:var(--muted); font-size:.88rem}
+.hr{height:1px; background:var(--line); border:0; margin:18px 0}
+input[type=password],input[type=date]{
+  width:100%; border:1px solid var(--line); border-radius:12px;
+  padding:14px 15px; font-size:1.05rem; font-family:inherit; color:var(--ink);
+  background:var(--bg); outline:none;
+}
+input:focus{border-color:var(--blue); background:var(--white)}
+.btn{
+  display:block; width:100%; border:0; border-radius:999px;
+  padding:15px 18px; font-size:1.02rem; font-family:inherit; font-weight:700;
+  background:linear-gradient(135deg,var(--blue),var(--blue-d)); color:#fff;
+  cursor:pointer; margin-top:14px;
+}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.55; cursor:default}
+.btn.ghost{background:var(--white); color:var(--blue-d); border:1px solid var(--line); font-weight:500}
+.btn.sm{padding:11px 16px; font-size:.92rem; margin-top:10px}
+.msg{border-radius:12px; padding:12px 14px; font-size:.92rem; margin-top:14px; display:none}
+.msg.show{display:block}
+.msg.err{background:#fdf0ea; color:#a8511b; border:1px solid #f4d3bf}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- 주 이동 ---------- */
+.nav{display:flex; align-items:center; gap:10px}
+.nav button{
+  border:1px solid var(--line); background:var(--white); color:var(--blue-d);
+  border-radius:12px; padding:9px 13px; font-family:inherit; font-size:.92rem; cursor:pointer;
+}
+.nav button:disabled{opacity:.4; cursor:default}
+.nav .range{flex:1 1 auto; text-align:center; font-family:'Gowun Batang',serif; color:var(--ink); font-weight:700}
+.nav .range small{display:block; font-family:'Noto Sans KR',sans-serif; font-weight:400; font-size:.74rem; color:var(--muted)}
+
+/* ---------- 요약 숫자 ---------- */
+.nums{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap}
+.num{flex:1 1 100px; background:var(--bg2); border-radius:14px; padding:14px 12px; text-align:center}
+.num b{
+  display:block; font-family:'Gowun Batang',serif; color:var(--navy);
+  font-size:1.55rem; line-height:1.15; font-weight:700;
+}
+.num span{display:block; font-size:.74rem; color:var(--muted); margin-top:3px}
+
+/* ---------- 짝 목록 ---------- */
+.sec h2{font-size:1.12rem; display:flex; align-items:center; gap:8px}
+.cnt{
+  font-family:'Noto Sans KR',sans-serif; font-size:.72rem; font-weight:700;
+  background:#dbe7f8; color:var(--blue-d); padding:3px 10px; border-radius:999px;
+}
+.cnt.warn{background:#fdeee2; color:#a8511b}
+.cnt.red{background:#fae3df; color:var(--red)}
+.pair{border-bottom:1px solid var(--line); padding:13px 0}
+.pair:last-child{border-bottom:0; padding-bottom:0}
+.pair .head{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.pair .who{font-weight:700; color:var(--ink)}
+.pair .arrow{color:var(--muted); font-size:.86rem}
+.pair .tot{margin-left:auto; font-size:.84rem; color:var(--muted); white-space:nowrap}
+.days{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap}
+.dchip{
+  font-size:.76rem; background:var(--bg2); color:var(--blue-d);
+  border-radius:10px; padding:5px 10px; border:1px solid var(--line);
+}
+.dchip.cut{background:#fdf3ec; border-color:#f6dcc6; color:#a8511b}
+.dchip.open{background:#faeceb; border-color:#f0cdc7; color:var(--red)}
+.memo{
+  margin-top:7px; background:var(--bg); border-radius:10px; padding:9px 12px;
+  font-size:.9rem; color:var(--body);
+}
+.late{margin-left:auto; font-size:.84rem; white-space:nowrap}
+.late.w{color:var(--warn)} .late.r{color:var(--red); font-weight:700}
+.empty{text-align:center; color:var(--muted); font-size:.92rem; padding:18px 0}
+.note{
+  background:#fff6ef; border:1px solid #f6dcc6; border-radius:12px;
+  padding:12px 14px; font-size:.88rem; color:var(--warn);
+}
+.note.info{background:var(--bg2); border-color:var(--line); color:var(--body)}
+.msg.ok{background:#eaf5ee; color:var(--ok); border:1px solid #cfe6d8}
+
+/* ---------- 1365 양식 표 ---------- */
+.tblwrap{overflow-x:auto; margin-top:10px; -webkit-overflow-scrolling:touch}
+table.f65{border-collapse:collapse; font-size:.8rem; min-width:640px; background:var(--white)}
+table.f65 th, table.f65 td{
+  border:1px solid var(--line); padding:5px 7px; text-align:center; white-space:nowrap;
+}
+table.f65 th{background:var(--bg2); color:var(--ink); font-weight:700; font-size:.74rem}
+table.f65 td:last-child{white-space:normal; min-width:180px; text-align:left}
+.fmacts{display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.fmacts button, .fmacts a{
+  border:1px solid var(--line); background:var(--white); color:var(--blue-d);
+  border-radius:999px; padding:8px 15px; font-family:inherit; font-size:.84rem;
+  cursor:pointer; text-decoration:none;
+}
+.fmacts .nophoto{font-size:.82rem; color:#a8511b}
+.foot{max-width:720px; margin:26px auto 0; padding:0 18px; text-align:center}
+.foot small{color:var(--muted); font-size:.78rem}
+@media (max-width:420px){ .card{padding:19px 17px} .num b{font-size:1.35rem} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="index.html" aria-label="글로벌한국어나눔 홈">
+      <img class="brand-mark" src="favicon-192.png" alt="">
+      <span class="brand-word">글로벌<b>한국어</b>나눔<span class="brand-en">GLOBAL KOREAN SHARING</span></span>
+    </a>
+    <span class="adm">관리</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ========== 잠금 ========== -->
+  <section id="viewLock" class="card">
+    <div class="eyebrow">관리 · ADMIN</div>
+    <h1 style="font-size:1.42rem">주간 수업 현황</h1>
+    <p class="muted" style="margin:.5rem 0 0">
+      관리 비밀번호를 넣어 주세요. (Worker에 넣으신 <b>ADMIN_KEY</b>)
+    </p>
+    <form onsubmit="doUnlock(event)" style="margin-top:18px">
+      <input id="key" type="password" autocomplete="current-password" placeholder="관리 비밀번호">
+      <button class="btn" id="btnUnlock" type="submit">현황 보기</button>
+    </form>
+    <div id="lockMsg" class="msg err"></div>
+  </section>
+
+  <!-- ========== 현황 ========== -->
+  <section id="viewBoard" class="hidden">
+
+    <div class="card">
+      <div class="eyebrow">주간 현황 · THIS WEEK</div>
+      <div class="nav" style="margin-top:10px">
+        <button onclick="moveWeek(-7)">← 지난주</button>
+        <div class="range"><span id="rangeTxt">—</span><small id="rangeSub"></small></div>
+        <button id="btnNext" onclick="moveWeek(7)">다음주 →</button>
+      </div>
+
+      <div class="nums">
+        <div class="num"><b id="nLessons">0</b><span>수업</span></div>
+        <div class="num"><b id="nTeachers">0</b><span>선생님</span></div>
+        <div class="num"><b id="nStudents">0</b><span>학생</span></div>
+        <div class="num"><b id="nHours">0</b><span>총 시간</span></div>
+      </div>
+    </div>
+
+    <!-- 선생님이 남긴 말 -->
+    <div class="card sec">
+      <h2>선생님이 남긴 말 <span class="cnt warn" id="cNotes">0</span></h2>
+      <p class="muted" style="margin:.35rem 0 0">
+        숫자가 설명하지 못하는 사정이 여기 있습니다. 확인한 것은 눌러서 표시해 두세요.
+      </p>
+      <div class="hr"></div>
+      <div id="listNotes"></div>
+      <div class="empty hidden" id="emptyNotes">남긴 말이 없습니다.</div>
+    </div>
+
+    <!-- 쉬는 중 -->
+    <div class="card sec">
+      <h2>쉬는 중 <span class="cnt" id="cPaused">0</span></h2>
+      <p class="muted" style="margin:.35rem 0 0">
+        선생님이 직접 알려 주신 휴식입니다. 아래 "챙길 명단"에는 뜨지 않습니다.
+      </p>
+      <div class="hr"></div>
+      <div id="listPaused"></div>
+      <div class="empty hidden" id="emptyPaused">쉬는 짝이 없습니다.</div>
+    </div>
+
+    <!-- 수업한 짝 -->
+    <div class="card sec">
+      <h2>이번 주 수업한 짝 <span class="cnt" id="cDid">0</span></h2>
+      <div class="hr"></div>
+      <div id="listDid"></div>
+      <div class="empty hidden" id="emptyDid">이번 주 기록된 수업이 없습니다.</div>
+    </div>
+
+    <!-- 아직 안 한 짝 -->
+    <div class="card sec">
+      <h2>이번 주 아직 <span class="cnt warn" id="cMissing">0</span></h2>
+      <p class="muted" style="margin:.35rem 0 0">
+        전에 수업하던 짝인데 이번 주 기록이 없습니다. 안부를 물어보실 명단입니다.
+      </p>
+      <div class="hr"></div>
+      <div id="listMissing"></div>
+      <div class="empty hidden" id="emptyMissing">모든 짝이 이번 주 수업했습니다.</div>
+    </div>
+
+    <!-- 3주 넘음 -->
+    <div class="card sec">
+      <h2>3주 넘게 수업 없음 <span class="cnt red" id="cStale">0</span></h2>
+      <p class="muted" style="margin:.35rem 0 0">
+        이탈로 이어지기 쉬운 구간입니다. 먼저 연락해 보시면 좋겠습니다.
+      </p>
+      <div class="hr"></div>
+      <div id="listStale"></div>
+      <div class="empty hidden" id="emptyStale">해당하는 짝이 없습니다.</div>
+    </div>
+
+    <!-- ========== 1365 일괄 취합 ========== -->
+    <div class="card sec">
+      <div class="eyebrow">1365 · 일괄 취합</div>
+      <h2 style="font-size:1.18rem">자원봉사활동 인증신청서 만들기</h2>
+      <p class="muted" style="margin:.35rem 0 0">
+        선생님이 <b>[1365 신청]</b>을 누른 분만 나옵니다. 활동내역이
+        <b>양식 칸 순서 그대로</b> 나오니, 표를 복사해서 한글 양식에 붙여넣고
+        단체 이름으로 한 번에 보내시면 됩니다.
+      </p>
+
+      <div class="nav" style="margin-top:14px">
+        <button onclick="moveMonth(-1)">← 지난달</button>
+        <div class="range"><span id="fmMonth">—</span><small id="fmSub"></small></div>
+        <button id="btnFmNext" onclick="moveMonth(1)">다음달 →</button>
+      </div>
+
+      <div class="nums" id="fmNums" style="display:none">
+        <div class="num"><b id="fmT">0</b><span>신청한 선생님</span></div>
+        <div class="num"><b id="fmL">0</b><span>수업</span></div>
+        <div class="num"><b id="fmNoInfo">0</b><span>생년월일 없음</span></div>
+        <div class="num"><b id="fmNoPhoto">0</b><span>사진 없음</span></div>
+      </div>
+
+      <div id="fmWarn" class="hidden" style="margin-top:14px"></div>
+      <button class="btn ghost sm" id="btnFm" onclick="loadForm()">이번 달 취합해서 보기</button>
+      <button class="btn ghost sm hidden" id="btnFmAll" onclick="toggleAll()">신청 안 한 선생님도 보기</button>
+      <button class="btn orange hidden" id="btnFmDone" onclick="markSubmitted()">성남시에 보냈음으로 표시</button>
+      <div id="fmMsg" class="msg"></div>
+      <div id="fmList" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1.06rem">월간 리포트</h2>
+      <p class="muted" style="margin:.35rem 0 0">
+        같은 기록을 월 단위로 합친 것입니다. 선생님이 남긴 말도 함께 나옵니다.
+      </p>
+      <a class="btn ghost sm" id="lnkReport" style="text-decoration:none; text-align:center" target="_blank" rel="noopener">이번 달 리포트 열기</a>
+    </div>
+
+    <button class="btn ghost sm" onclick="lock()">잠그기</button>
+  </section>
+
+</main>
+
+<div class="foot">
+  <small>글로벌한국어나눔 · 관리 화면</small>
+</div>
+
+<script>
+var KEY = '';
+var WEEK = '';      /* 보고 있는 주의 아무 날짜 (YYYY-MM-DD) */
+var DATA = null;
+var DOW = ['일','월','화','수','목','금','토'];
+
+function show(id){
+  ['viewLock','viewBoard'].forEach(function(v){
+    document.getElementById(v).classList.toggle('hidden', v!==id);
+  });
+  window.scrollTo(0,0);
+}
+function msg(id, text){
+  var el = document.getElementById(id);
+  el.className = 'msg err' + (text?' show':'');
+  el.textContent = text||'';
+}
+function busy(btnId, on, label){
+  var b = document.getElementById(btnId); if(!b) return;
+  if(on){
+    if(!b.getAttribute('data-label')) b.setAttribute('data-label', b.innerHTML);
+    b.disabled = true; b.innerHTML = '<span class="spin"></span>확인 중';
+  } else {
+    b.disabled = false; b.innerHTML = label || b.getAttribute('data-label') || '';
+  }
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+/* 한국 시간 기준 오늘 — Worker와 기준을 맞춥니다 */
+function kstToday(){
+  return new Date(Date.now() + 9*3600*1000).toISOString().slice(0,10);
+}
+
+/* ================= 열기 ================= */
+function doUnlock(ev){
+  if(ev) ev.preventDefault();
+  msg('lockMsg','');
+  if(!CLASS_API){ msg('lockMsg','기록 서버가 아직 연결되지 않았습니다 (관리자 설정 필요).'); return; }
+  var k = document.getElementById('key').value.trim();
+  if(!k){ msg('lockMsg','비밀번호를 넣어 주세요.'); return; }
+
+  busy('btnUnlock', true);
+  KEY = k; WEEK = kstToday();
+  load().then(function(ok){
+    busy('btnUnlock', false, '현황 보기');
+    if(ok){
+      try{ sessionStorage.setItem('gks_admin', k); }catch(e){}
+      show('viewBoard');
+    } else {
+      KEY = '';
+      msg('lockMsg','비밀번호가 맞지 않습니다.');
+    }
+  }).catch(function(){
+    busy('btnUnlock', false, '현황 보기');
+    KEY = '';
+    msg('lockMsg','연결이 잘 안 됐어요. 잠시 후 다시 눌러 주세요.');
+  });
+}
+
+function lock(){
+  KEY=''; DATA=null;
+  try{ sessionStorage.removeItem('gks_admin'); }catch(e){}
+  document.getElementById('key').value='';
+  msg('lockMsg',''); show('viewLock');
+}
+
+function load(){
+  var url = CLASS_API.replace(/\/$/,'') + '/weekly'
+          + '?key=' + encodeURIComponent(KEY) + '&week=' + encodeURIComponent(WEEK);
+  return fetch(url).then(function(r){
+    if(r.status === 403) return null;
+    return r.json();
+  }).then(function(d){
+    if(!d || d.error) return false;
+    DATA = d; render();
+    return true;
+  });
+}
+
+function moveWeek(delta){
+  var d = new Date(DATA.week.start + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + delta);
+  WEEK = d.toISOString().slice(0,10);
+  load().catch(function(){});
+}
+
+/* ================= 그리기 ================= */
+function render(){
+  if(!DATA) return;
+  var w = DATA.week, s = DATA.summary || {};
+
+  document.getElementById('rangeTxt').textContent = fmtRange(w.start, w.end);
+  document.getElementById('rangeSub').textContent = w.is_current ? '이번 주' : '';
+  document.getElementById('btnNext').disabled = !!w.is_current;
+
+  document.getElementById('nLessons').textContent  = s.lessons || 0;
+  document.getElementById('nTeachers').textContent = s.teachers || 0;
+  document.getElementById('nStudents').textContent = s.students || 0;
+  document.getElementById('nHours').textContent    = fmtSpan(s.minutes || 0);
+
+  /* --- 수업한 짝 --- */
+  var did = DATA.did || [];
+  document.getElementById('cDid').textContent = did.length;
+  document.getElementById('emptyDid').classList.toggle('hidden', did.length>0);
+  var box = document.getElementById('listDid');
+  box.innerHTML = '';
+  did.forEach(function(p){
+    var div = document.createElement('div');
+    div.className = 'pair';
+    var h = '<div class="head">'
+          +   '<span class="who">' + esc(p.teacher) + '</span>'
+          +   '<span class="arrow">→</span>'
+          +   '<span class="who">' + esc(p.student || '(짝 미기록)') + '</span>'
+          +   '<span class="tot">' + p.count + '회 · ' + p.minutes + '분</span>'
+          + '</div>';
+
+    h += '<div class="days">';
+    p.days.forEach(function(d){
+      var cls = !d.closed ? ' open' : (d.reconnects > 0 ? ' cut' : '');
+      var extra = !d.closed ? ' 끝맺음 없음' : (d.reconnects > 0 ? ' 끊김'+d.reconnects : '');
+      h += '<span class="dchip'+cls+'">' + fmtDow(d.day) + ' ' + (d.minutes||0) + '분'
+         + esc(extra) + (d.recorded ? ' 녹음' : '') + '</span>';
+    });
+    h += '</div>';
+
+    var memos = p.days.filter(function(d){ return d.memo; }).map(function(d){
+      return fmtDow(d.day) + ' — ' + esc(d.memo);
+    });
+    if(memos.length) h += '<div class="memo">' + memos.join('<br>') + '</div>';
+
+    div.innerHTML = h;
+    box.appendChild(div);
+  });
+
+  paintNotes();
+  paintPaused();
+
+  /* --- 아직 안 한 짝 / 3주 넘음 --- */
+  paintLate('listMissing', 'cMissing', 'emptyMissing', DATA.missing || [], 'w');
+  paintLate('listStale',   'cStale',   'emptyStale',   DATA.stale   || [], 'r');
+
+  var ym = kstToday().slice(0,7);
+  document.getElementById('lnkReport').href =
+    CLASS_API.replace(/\/$/,'') + '/report?key=' + encodeURIComponent(KEY) + '&month=' + ym;
+}
+
+/* 선생님이 남긴 말 — 확인 안 한 것이 위로 옵니다 */
+function paintNotes(){
+  var rows = DATA.notes || [];
+  var unseen = DATA.unseen || 0;
+  var c = document.getElementById('cNotes');
+  c.textContent = unseen > 0 ? (unseen + ' / ' + rows.length) : rows.length;
+  c.className = 'cnt' + (unseen > 0 ? ' warn' : '');
+  document.getElementById('emptyNotes').classList.toggle('hidden', rows.length>0);
+
+  var box = document.getElementById('listNotes');
+  box.innerHTML = '';
+  rows.forEach(function(n){
+    var div = document.createElement('div');
+    div.className = 'pair';
+    var kindTag = n.kind==='pause'
+        ? '<span class="cnt warn">쉼' + (n.until ? ' · ' + fmtDay(n.until) + '까지' : '') + '</span>'
+        : n.kind==='resume' ? '<span class="cnt">복귀</span>' : '';
+
+    var h = '<div class="head">'
+          +   '<span class="who">' + esc(n.me_name) + '</span>'
+          +   (n.partner ? '<span class="arrow">→</span><span class="who">' + esc(n.partner) + '</span>' : '')
+          +   ' ' + kindTag
+          +   '<span class="late' + (n.seen ? '' : ' w') + '">' + fmtDay(n.day) + '</span>'
+          + '</div>';
+    if(n.body) h += '<div class="memo">' + esc(n.body) + '</div>';
+    if(!n.seen){
+      h += '<button class="btn ghost sm" style="width:auto; padding:7px 15px; font-size:.84rem"'
+         + ' onclick="markSeen(' + Number(n.id) + ')">확인했습니다</button>';
+    }
+    div.innerHTML = h;
+    box.appendChild(div);
+  });
+}
+
+function markSeen(id){
+  fetch(CLASS_API.replace(/\/$/,'') + '/note/seen?key=' + encodeURIComponent(KEY), {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id:id})
+  }).then(function(){ return load(); }).catch(function(){});
+}
+
+/* 쉬는 중 — 선생님이 직접 알려 주신 것만 */
+function paintPaused(){
+  var rows = DATA.paused || [];
+  document.getElementById('cPaused').textContent = rows.length;
+  document.getElementById('emptyPaused').classList.toggle('hidden', rows.length>0);
+  var box = document.getElementById('listPaused');
+  box.innerHTML = '';
+  rows.forEach(function(p){
+    var div = document.createElement('div');
+    div.className = 'pair';
+    var h = '<div class="head">'
+          +   '<span class="who">' + esc(p.teacher) + '</span>'
+          +   '<span class="arrow">→</span>'
+          +   '<span class="who">' + esc(p.student) + '</span>'
+          +   '<span class="late">' + (p.until ? fmtDay(p.until) + '까지' : '기간 미정') + '</span>'
+          + '</div>';
+    if(p.body) h += '<div class="memo">' + esc(p.body) + '</div>';
+    div.innerHTML = h;
+    box.appendChild(div);
+  });
+}
+
+function paintLate(listId, cntId, emptyId, rows, cls){
+  document.getElementById(cntId).textContent = rows.length;
+  document.getElementById(emptyId).classList.toggle('hidden', rows.length>0);
+  var box = document.getElementById(listId);
+  box.innerHTML = '';
+  rows.forEach(function(p){
+    var div = document.createElement('div');
+    div.className = 'pair';
+    div.innerHTML = '<div class="head">'
+      + '<span class="who">' + esc(p.teacher) + '</span>'
+      + '<span class="arrow">→</span>'
+      + '<span class="who">' + esc(p.student || '(짝 미기록)') + '</span>'
+      + '<span class="late ' + cls + '">' + p.days_ago + '일 전 (' + fmtDay(p.last_day) + ')</span>'
+      + '</div>';
+    box.appendChild(div);
+  });
+}
+
+/* ================= 1365 일괄 취합 ================= */
+var FM_MONTH = '', FORM = null, FM_ALL = false;
+
+function toggleAll(){ FM_ALL = !FM_ALL; loadForm(); }
+
+function moveMonth(delta){
+  var p = (FM_MONTH || kstToday().slice(0,7)).split('-');
+  var d = new Date(Date.UTC(Number(p[0]), Number(p[1]) - 1 + delta, 1));
+  FM_MONTH = d.toISOString().slice(0,7);
+  loadForm();
+}
+
+function loadForm(){
+  if(!FM_MONTH) FM_MONTH = kstToday().slice(0,7);
+  msg('fmMsg','');
+  busy('btnFm', true);
+  var url = CLASS_API.replace(/\/$/,'') + '/form1365'
+          + '?key=' + encodeURIComponent(KEY) + '&month=' + encodeURIComponent(FM_MONTH)
+          + (FM_ALL ? '&all=1' : '');
+  fetch(url).then(function(r){ return r.json(); }).then(function(d){
+    busy('btnFm', false, '다시 취합하기');
+    if(!d || d.error){ msg('fmMsg','불러오지 못했습니다.'); return; }
+    FORM = d; renderForm();
+  }).catch(function(){
+    busy('btnFm', false, '이번 달 취합해서 보기');
+    msg('fmMsg','연결이 잘 안 됐어요. 잠시 후 다시 눌러 주세요.');
+  });
+}
+
+function renderForm(){
+  var d = FORM, s = d.summary || {};
+  var p = d.month.split('-');
+  document.getElementById('fmMonth').textContent = Number(p[0]) + '년 ' + Number(p[1]) + '월';
+  document.getElementById('fmSub').textContent =
+    d.month === kstToday().slice(0,7) ? '이번 달' : '';
+  document.getElementById('btnFmNext').disabled = (d.month >= kstToday().slice(0,7));
+
+  document.getElementById('fmNums').style.display = '';
+  document.getElementById('fmT').textContent = s.teachers || 0;
+  document.getElementById('fmL').textContent = s.lessons || 0;
+  document.getElementById('fmNoInfo').textContent = s.no_info || 0;
+  document.getElementById('fmNoPhoto').textContent = s.no_photo || 0;
+
+  document.getElementById('btnFmAll').classList.remove('hidden');
+  document.getElementById('btnFmAll').textContent =
+    FM_ALL ? '신청한 선생님만 보기' : ('신청 안 한 선생님도 보기' + (s.not_requested ? ' (' + s.not_requested + '명)' : ''));
+
+  /* 보냈음 표시는 신청한 분이 있고 아직 안 보낸 것이 있을 때만 */
+  var pending = (d.teachers||[]).filter(function(T){ return T.requested && T.status !== 'submitted'; }).length;
+  var doneBtn = document.getElementById('btnFmDone');
+  doneBtn.classList.toggle('hidden', pending === 0);
+  doneBtn.textContent = '성남시에 보냈음으로 표시 (' + pending + '명)';
+
+  /* 보내기 전에 챙길 것을 먼저 알려 줍니다 */
+  var w = document.getElementById('fmWarn');
+  var msgs = [];
+  if(s.no_info)  msgs.push('<b>생년월일을 아직 안 넣은 선생님 ' + s.no_info + '명</b> — 신청서에 빈칸으로 나옵니다. 선생님 방 → [1365 신청 정보]에서 한 번만 넣으시면 됩니다.');
+  if(s.no_photo) msgs.push('<b>증빙 사진이 없는 선생님 ' + s.no_photo + '명</b> — 수업 중 [사진]을 눌러 남기시면 됩니다.');
+  if(!FM_ALL && s.not_requested) msgs.push('그 달 수업은 했지만 <b>아직 신청을 안 누른 선생님 ' + s.not_requested + '명</b>이 있습니다. 신청은 선택이라 그대로 두셔도 됩니다.');
+  if(msgs.length){
+    w.className = 'note';
+    w.innerHTML = msgs.join('<br><br>');
+    w.classList.remove('hidden');
+  } else { w.classList.add('hidden'); }
+
+  var box = document.getElementById('fmList');
+  box.innerHTML = '';
+  (d.teachers || []).forEach(function(T, i){
+    var div = document.createElement('div');
+    div.className = 'pair';
+
+    var idCell = T.portal_id || T.phone;
+    var head = '<div class="head">'
+      + '<span class="who">' + esc(T.name) + '</span>'
+      + (T.birth ? '<span class="arrow">' + esc(T.birth) + '</span>'
+                 : '<span class="cnt warn">생년월일 없음</span>')
+      + '<span class="arrow">' + esc(idCell) + '</span>'
+      + '<span class="tot">' + T.lessons + '회 · ' + fmtSpan(T.minutes) + '</span>'
+      + '</div>';
+
+    /* 양식 칸 순서 그대로 — 그래서 그대로 붙여넣어집니다 */
+    var tbl = '<div class="tblwrap"><table class="f65" id="f65_' + i + '">'
+      + '<thead><tr>'
+      +   '<th>연번</th><th>성명</th><th>생년월일</th><th>1365포털ID<br>혹은 연락처</th>'
+      +   '<th>활동일자</th><th>시작시간</th><th>마침시간</th><th>장소</th><th>활동내용</th>'
+      + '</tr></thead><tbody>';
+    T.rows.forEach(function(r, ri){
+      tbl += '<tr>'
+        + '<td>' + r.no + '</td>'
+        + '<td>' + (ri === 0 ? esc(T.name) : '“') + '</td>'
+        + '<td>' + (ri === 0 ? esc(T.birth || '') : '“') + '</td>'
+        + '<td>' + (ri === 0 ? esc(idCell) : '“') + '</td>'
+        + '<td>' + esc(r.day) + '</td>'
+        + '<td>' + esc(r.start) + '</td>'
+        + '<td>' + esc(r.end) + '</td>'
+        + '<td>' + esc(r.place) + '</td>'
+        + '<td>' + esc(r.content) + '</td>'
+        + '</tr>';
+    });
+    tbl += '</tbody></table></div>';
+
+    var acts = '<div class="fmacts">'
+      + '<button onclick="copyTable(' + i + ')">표 복사</button>'
+      + (T.photo_key
+          ? '<a href="' + esc(CLASS_API.replace(/\/$/,'') + '/photo/get?k=' + encodeURIComponent(T.photo_key) + '&dl=1') + '">증빙 사진 내려받기</a>'
+          : '<span class="nophoto">증빙 사진 없음</span>')
+      + '</div>';
+
+    div.innerHTML = head + tbl + acts;
+    box.appendChild(div);
+  });
+}
+
+/* 성남시에 보낸 뒤 눌러 주세요 — 선생님 방에도 "제출 완료"로 바뀝니다 */
+function markSubmitted(){
+  if(!confirm(FORM.month + ' 신청분을 성남시에 보냈음으로 표시할까요?\n선생님 방에도 "제출 완료"로 보입니다.')) return;
+  fetch(CLASS_API.replace(/\/$/,'') + '/filing/done?key=' + encodeURIComponent(KEY), {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ym: FORM.month})
+  }).then(function(){
+    var el = document.getElementById('fmMsg');
+    el.className = 'msg ok show';
+    el.textContent = '표시했습니다.';
+    loadForm();
+  }).catch(function(){ msg('fmMsg','표시하지 못했습니다.'); });
+}
+
+/* 한글에 붙여넣으면 표로 들어갑니다 (HTML + 탭 구분 텍스트를 함께 올립니다) */
+function copyTable(i){
+  var tb = document.getElementById('f65_' + i);
+  if(!tb) return;
+  var rows = [].map.call(tb.querySelectorAll('tr'), function(tr){
+    return [].map.call(tr.querySelectorAll('th,td'), function(c){
+      return c.innerText.replace(/\s*\n\s*/g, ' ').trim();
+    }).join('\t');
+  }).join('\n');
+
+  var done = function(){ msg('fmMsg',''); document.getElementById('fmMsg').className='msg ok show';
+                         document.getElementById('fmMsg').textContent='복사했습니다. 한글 양식에 붙여넣으세요.'; };
+
+  if(navigator.clipboard && window.ClipboardItem){
+    navigator.clipboard.write([new ClipboardItem({
+      'text/html': new Blob([tb.outerHTML], {type:'text/html'}),
+      'text/plain': new Blob([rows], {type:'text/plain'})
+    })]).then(done).catch(function(){ fallbackCopy(rows, done); });
+  } else {
+    fallbackCopy(rows, done);
+  }
+}
+function fallbackCopy(text, done){
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-1000px';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){}
+  ta.remove();
+}
+
+function fmtDay(d){
+  if(!d) return '';
+  var p = String(d).split('-');
+  return p.length<3 ? String(d) : (Number(p[1])+'월 '+Number(p[2])+'일');
+}
+function fmtDow(d){
+  var dt = new Date(d + 'T00:00:00Z');
+  return Number(String(d).split('-')[2]) + '일(' + DOW[dt.getUTCDay()] + ')';
+}
+function fmtRange(a, b){
+  var pa = String(a).split('-'), pb = String(b).split('-');
+  if(pa.length<3 || pb.length<3) return a + ' ~ ' + b;
+  return Number(pa[1])+'월 '+Number(pa[2])+'일 ~ ' + Number(pb[1])+'월 '+Number(pb[2])+'일';
+}
+function fmtSpan(mins){
+  return mins < 60 ? (mins + '분') : (Math.round(mins/60) + '시간');
+}
+
+/* ================= 시작 ================= */
+(function init(){
+  var k='';
+  try{ k = sessionStorage.getItem('gks_admin')||''; }catch(e){}
+  if(k && CLASS_API){
+    KEY = k; WEEK = kstToday();
+    load().then(function(ok){ if(ok) show('viewBoard'); else KEY=''; }).catch(function(){ KEY=''; });
+  }
+  if(!CLASS_API) msg('lockMsg','기록 서버가 아직 연결되지 않았습니다 (관리자 설정 필요).');
+})();
+</script>
+</body>
+</html>

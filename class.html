@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>수업방 | 글로벌한국어나눔</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon-32.png" sizes="32x32">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script>
+/* ===================================================================
+   ★ 여기 두 줄만 채우면 됩니다 (worker/README.md 참고)
+   =================================================================== */
+var LK_URL    = "";   // 예: wss://gks-a1b2c3.livekit.cloud
+var CLASS_API = "";   // 예: https://gks-class.korean121free.workers.dev
+</script>
+
+<!-- 버전을 2로 고정합니다 — 다음 큰 버전이 나와도 수업이 갑자기 안 되는 일이 없도록 -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
+
+<style>
+:root{
+  --blue:#4472C4; --blue-d:#37589f; --orange:#ED7D31;
+  --navy:#2e4d8f; --ink:#2e4d8f; --body:#3d5680; --muted:#7288ab;
+  --bg:#f8fafd; --bg2:#eef3fa; --line:#dbe7f8; --white:#fff;
+  --ok:#2e7d5b; --warn:#b4611b;
+  --stage:#1b2436;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--bg); color:var(--body);
+  font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+  font-size:16px; line-height:1.65; word-break:keep-all;
+}
+h1,h2,h3{font-family:'Gowun Batang','Noto Sans KR',serif; color:var(--ink); margin:0; font-weight:700}
+.hidden{display:none !important}
+
+/* ---------- 헤더 ---------- */
+.top{background:var(--white); border-bottom:1px solid var(--line)}
+.top-in{
+  max-width:560px; margin:0 auto; padding:12px 18px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; flex:0 0 auto}
+.brand-mark{height:38px; width:auto; display:block}
+.brand-word{
+  font-family:'Gowun Batang',serif; color:var(--navy); font-size:1.06rem;
+  font-weight:700; letter-spacing:-.02em; line-height:1.2;
+}
+.brand-word b{color:var(--orange); font-weight:700}
+.brand-en{
+  display:block; font-family:'Noto Sans KR',sans-serif; font-weight:500;
+  font-size:.56rem; letter-spacing:2px; color:var(--muted);
+}
+@media (max-width:400px){ .brand-mark{height:32px} .brand-word{font-size:.96rem} }
+.langs{display:flex; gap:0; flex:0 0 auto; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+.langs button{
+  border:0; background:var(--white); color:var(--muted);
+  font-family:inherit; font-size:.72rem; padding:5px 11px; cursor:pointer;
+}
+.langs button.on{background:#dbe7f8; color:var(--ink); font-weight:700}
+
+/* ---------- 공통 ---------- */
+.wrap{max-width:560px; margin:0 auto; padding:22px 18px 40px}
+.card{
+  background:var(--white); border:1px solid var(--line); border-radius:18px;
+  padding:22px; margin-bottom:16px;
+}
+.eyebrow{
+  font-size:.72rem; letter-spacing:.14em; color:var(--orange);
+  font-weight:700; text-transform:uppercase; margin-bottom:8px;
+}
+.lead{margin:.5rem 0 0; color:var(--body)}
+.muted{color:var(--muted); font-size:.88rem}
+.hr{height:1px; background:var(--line); border:0; margin:18px 0}
+input[type=text],textarea{
+  width:100%; border:1px solid var(--line); border-radius:12px;
+  padding:14px 15px; font-size:1.05rem; font-family:inherit; color:var(--ink);
+  background:var(--bg); outline:none;
+}
+input:focus,textarea:focus{border-color:var(--blue); background:var(--white)}
+textarea{font-size:.98rem; min-height:84px; resize:vertical}
+.btn{
+  display:block; width:100%; border:0; border-radius:999px;
+  padding:15px 18px; font-size:1.02rem; font-family:inherit; font-weight:700;
+  background:linear-gradient(135deg,var(--blue),var(--blue-d)); color:#fff;
+  cursor:pointer; margin-top:14px;
+}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.55; cursor:default}
+.btn.ghost{background:var(--white); color:var(--blue-d); border:1px solid var(--line); font-weight:500}
+.btn.orange{background:linear-gradient(135deg,#f0904a,var(--orange))}
+.btn.sm{padding:11px 16px; font-size:.92rem; margin-top:10px}
+.msg{border-radius:12px; padding:12px 14px; font-size:.92rem; margin-top:14px; display:none}
+.msg.show{display:block}
+.msg.err{background:#fdf0ea; color:#a8511b; border:1px solid #f4d3bf}
+.msg.ok{background:#eaf5ee; color:var(--ok); border:1px solid #cfe6d8}
+.note{
+  background:#fff6ef; border:1px solid #f6dcc6; border-radius:12px;
+  padding:12px 14px; font-size:.88rem; color:var(--warn); margin-top:14px;
+}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- 입장 전 점검 ---------- */
+.chk{list-style:none; margin:16px 0 0; padding:0}
+.chk li{
+  display:flex; align-items:center; gap:11px; padding:11px 0;
+  border-bottom:1px solid var(--line); font-size:.95rem;
+}
+.chk li:last-child{border-bottom:0}
+.dot{
+  width:22px; height:22px; border-radius:50%; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.72rem; font-weight:700; color:#fff; background:#c3d2e8;
+}
+.dot.go{background:var(--ok)} .dot.no{background:#c9622b} .dot.mid{background:#d9a53f}
+.chk .val{margin-left:auto; color:var(--muted); font-size:.84rem; text-align:right}
+.meter{height:8px; background:var(--bg2); border-radius:99px; overflow:hidden; margin-top:4px; width:88px}
+.meter i{display:block; height:100%; width:0%; background:var(--ok); transition:width .1s linear}
+.selfview{
+  width:100%; aspect-ratio:16/9; background:var(--stage); border-radius:14px;
+  margin-top:16px; overflow:hidden; position:relative;
+}
+.selfview video{width:100%; height:100%; object-fit:cover; transform:scaleX(-1)}
+.selfview .off{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#8fa4c4; font-size:.9rem; text-align:center; padding:20px;
+}
+
+/* ---------- 수업방 ---------- */
+#viewRoom{position:fixed; inset:0; background:var(--stage); display:flex; flex-direction:column}
+.stage{position:relative; flex:1 1 auto; min-height:0; overflow:hidden}
+.stage .remote{position:absolute; inset:0; display:flex; align-items:center; justify-content:center}
+.stage .remote video{width:100%; height:100%; object-fit:contain; background:var(--stage)}
+.waiting{
+  position:absolute; inset:0; display:flex; flex-direction:column; gap:10px;
+  align-items:center; justify-content:center; color:#93a8c8; text-align:center; padding:26px;
+}
+.waiting .big{font-family:'Gowun Batang',serif; color:#dbe7f8; font-size:1.18rem}
+.pip{
+  position:absolute; right:12px; bottom:12px; width:29%; max-width:190px; min-width:98px;
+  aspect-ratio:3/4; background:#0f1725; border-radius:12px; overflow:hidden;
+  border:1px solid rgba(219,231,248,.22); z-index:4;
+}
+.pip video{width:100%; height:100%; object-fit:cover; transform:scaleX(-1)}
+.pip .off{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#7f95b6; font-size:.72rem;
+}
+.pip .who{
+  position:absolute; left:0; right:0; bottom:0; padding:3px 7px;
+  background:linear-gradient(transparent,rgba(15,23,37,.8)); color:#dbe7f8; font-size:.66rem;
+}
+.tags{position:absolute; left:12px; top:12px; z-index:5; display:flex; flex-direction:column; gap:7px; align-items:flex-start}
+.pill{
+  background:rgba(15,23,37,.72); color:#dbe7f8; border:1px solid rgba(219,231,248,.2);
+  border-radius:99px; padding:4px 11px; font-size:.74rem; display:flex; align-items:center; gap:6px;
+}
+.pill .led{width:7px; height:7px; border-radius:50%; background:var(--ok)}
+.pill.mid .led{background:#d9a53f} .pill.no .led{background:#c9622b}
+.banner{
+  /* 연결 상태 알약(top:12px) 아래에 놓습니다 — 안내가 떠도 연결 상태는 계속 보여야 합니다 */
+  position:absolute; left:12px; right:12px; top:52px; z-index:9;
+  background:rgba(255,246,239,.97); border:1px solid #f6dcc6; border-radius:14px;
+  padding:13px 15px; color:var(--warn); font-size:.9rem;
+}
+.banner h3{font-size:1rem; color:#8f4d16; margin-bottom:3px}
+.banner .row{display:flex; gap:8px; margin-top:11px; flex-wrap:wrap}
+.banner .row button{
+  flex:1 1 auto; border:0; border-radius:99px; padding:10px 14px;
+  font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer;
+  background:linear-gradient(135deg,#f0904a,var(--orange)); color:#fff;
+}
+.banner .row button.ghost{background:var(--white); color:var(--blue-d); border:1px solid var(--line); font-weight:500}
+
+.bar{
+  flex:0 0 auto; background:#141c2b; border-top:1px solid rgba(219,231,248,.13);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  display:flex; gap:8px; justify-content:center; align-items:center;
+}
+.ctl{
+  border:1px solid rgba(219,231,248,.22); background:#1f293c; color:#dbe7f8;
+  border-radius:14px; width:60px; height:52px; cursor:pointer;
+  font-family:inherit; font-size:.63rem; line-height:1.25;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+}
+.ctl .ico{font-size:1.06rem; line-height:1}
+.ctl.off{background:#3a2530; border-color:#6d3b47; color:#f0c3cd}
+.ctl.on{background:#24405f; border-color:#3c689b}
+.ctl.leave{background:#7d2f3c; border-color:#a04451; color:#ffe2e7}
+.ctl[disabled]{opacity:.4; cursor:default}
+@media (max-width:380px){ .ctl{width:52px; height:48px; font-size:.58rem} }
+</style>
+</head>
+<body>
+
+<!-- ========== 헤더 (수업 중에는 숨김) ========== -->
+<header class="top" id="topBar">
+  <div class="top-in">
+    <a class="brand" href="portal.html" aria-label="글로벌한국어나눔">
+      <img class="brand-mark" src="favicon-192.png" alt="">
+      <span class="brand-word">글로벌<b>한국어</b>나눔<span class="brand-en">GLOBAL KOREAN SHARING</span></span>
+    </a>
+    <div class="langs" role="group" aria-label="Language">
+      <button id="btnKo" class="on" onclick="setLang('ko')">한국어</button>
+      <button id="btnEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="mainWrap">
+
+  <!-- ========== 1. 입장 전 점검 ========== -->
+  <section id="viewCheck" class="card">
+    <div class="eyebrow" data-i18n="chkEyebrow">입장 전 점검 · CHECK</div>
+    <h1 style="font-size:1.42rem" data-i18n="chkTitle">수업 들어가기 전에 3초만</h1>
+    <p class="lead" data-i18n="chkLead">
+      마이크와 카메라가 잘 되는지 먼저 확인합니다. 여기서 잘 되면 수업 중에도 잘 됩니다.
+    </p>
+
+    <div class="selfview">
+      <video id="preVideo" autoplay playsinline muted></video>
+      <!-- 문구는 안쪽 span에 둡니다 — .off가 flex라서 <b>가 따로 떨어지면 순서가 깨집니다 -->
+      <div class="off" id="preOff"><span id="preOffTxt" data-i18n="chkAllow">아래 [점검 시작]을 누르고, 브라우저가 묻는 <b>허용</b>을 눌러 주세요.</span></div>
+    </div>
+
+    <ul class="chk">
+      <li>
+        <span class="dot" id="dMic">·</span>
+        <span data-i18n="chkMic">마이크</span>
+        <span class="val" id="vMic">
+          <span data-i18n="chkWait">확인 전</span>
+          <span class="meter"><i id="micBar"></i></span>
+        </span>
+      </li>
+      <li>
+        <span class="dot" id="dCam">·</span>
+        <span data-i18n="chkCam">카메라</span>
+        <span class="val" id="vCam" data-i18n="chkWait">확인 전</span>
+      </li>
+      <li>
+        <span class="dot" id="dNet">·</span>
+        <span data-i18n="chkNet">인터넷 연결</span>
+        <span class="val" id="vNet" data-i18n="chkWait">확인 전</span>
+      </li>
+    </ul>
+
+    <button class="btn ghost" id="btnCheck" onclick="runCheck()" data-i18n="chkBtn">점검 시작</button>
+    <button class="btn" id="btnJoin" onclick="joinRoom()" disabled data-i18n="joinBtn">수업 들어가기</button>
+    <div id="chkMsg" class="msg err"></div>
+
+    <hr class="hr">
+    <p class="muted" style="margin:0" data-i18n="chkTip">
+      <b>소리가 잘 안 들릴 때</b> — 이어폰을 쓰시고, 수업 중 <b>[음성 우선]</b> 버튼을 누르면 영상을 끄고 소리에 모든 연결을 씁니다.
+    </p>
+  </section>
+
+  <!-- ========== 3. 수업 끝 ========== -->
+  <section id="viewEnded" class="card hidden">
+    <div class="eyebrow" data-i18n="endEyebrow">수업 후 · AFTER CLASS</div>
+    <h1 style="font-size:1.32rem" data-i18n="endTitle">수고하셨습니다</h1>
+    <p class="lead" id="endStat"></p>
+    <hr class="hr">
+    <h2 style="font-size:1.1rem" data-i18n="endMemoTitle">오늘 어디까지 했는지 한 줄만</h2>
+    <p class="muted" style="margin:.4rem 0 12px" data-i18n="endMemoLead">
+      기록이 쌓이면 봉사시간 근거와 월간리포트가 자동으로 만들어집니다.
+    </p>
+    <textarea id="memo" placeholder="예) 1과 인사말 끝냄. 다음에 숫자 읽기." data-i18n-ph="endMemoPh"></textarea>
+    <button class="btn orange" id="btnMemo" onclick="saveMemo()" data-i18n="endMemoBtn">기록하고 나가기</button>
+    <button class="btn ghost sm" onclick="location.href='portal.html'" data-i18n="endBack">내 수업으로 돌아가기</button>
+    <div id="endMsg" class="msg ok"></div>
+  </section>
+
+</main>
+
+<!-- ========== 2. 수업방 ========== -->
+<section id="viewRoom" class="hidden">
+  <div class="stage">
+    <div class="remote" id="remoteBox"></div>
+
+    <div class="waiting" id="waitBox">
+      <div class="big" id="waitBig" data-i18n="waitBig">상대방을 기다리고 있습니다</div>
+      <div style="font-size:.88rem" data-i18n="waitSub">들어오면 이 화면에 바로 보입니다.</div>
+    </div>
+
+    <div class="tags">
+      <div class="pill" id="pillNet"><span class="led"></span><span id="netTxt">연결 확인 중</span></div>
+      <div class="pill" id="pillTime" style="display:none"><span id="timeTxt">00:00</span></div>
+    </div>
+
+    <div class="pip">
+      <video id="myVideo" autoplay playsinline muted></video>
+      <div class="off hidden" id="myOff" data-i18n="camOff">카메라 꺼짐</div>
+      <div class="who" id="myWho">나</div>
+    </div>
+
+    <!-- 재접속 / 폴백 안내 -->
+    <div class="banner hidden" id="bnrRecon">
+      <h3 data-i18n="reconTitle">연결이 끊겼습니다 — 다시 잇고 있어요</h3>
+      <div data-i18n="reconLead">잠시만 기다려 주세요. 아무것도 누르지 않아도 됩니다.</div>
+    </div>
+
+    <div class="banner hidden" id="bnrFallback">
+      <h3 data-i18n="fbTitle">연결이 계속 잘 안 됩니다</h3>
+      <div data-i18n="fbLead">수업이 끊기지 않도록 구글 미트로 옮겨서 계속하세요.</div>
+      <div class="row">
+        <button onclick="goFallback()" data-i18n="fbGo">구글 미트로 수업하기</button>
+        <button class="ghost" onclick="hideFallback()" data-i18n="fbStay">여기서 더 해보기</button>
+      </div>
+    </div>
+
+    <!-- 사진: 학생에게 물어보는 창 (학생 화면에 뜹니다) -->
+    <div class="banner hidden" id="bnrAsk">
+      <h3 data-i18n="askTitle">선생님이 수업 사진을 남기고 싶어 합니다</h3>
+      <div data-i18n="askLead">봉사 증빙에 쓰는 사진입니다. 지금 화면이 한 장 저장됩니다. 괜찮으신가요?</div>
+      <div class="row">
+        <button onclick="photoAnswer(true)" data-i18n="askYes">괜찮습니다</button>
+        <button class="ghost" onclick="photoAnswer(false)" data-i18n="askNo">지금은 아니요</button>
+      </div>
+    </div>
+
+    <!-- 사진: 선생님이 기다리는 동안 -->
+    <div class="banner hidden" id="bnrWaitPhoto">
+      <h3 data-i18n="pwTitle">학생에게 물어보는 중입니다</h3>
+      <div data-i18n="pwLead">학생이 괜찮다고 하면 사진이 저장됩니다.</div>
+    </div>
+
+    <!-- 누를 것이 없는 안내는 버튼 없이 스스로 사라집니다 -->
+    <div class="banner hidden" id="bnrAudio">
+      <h3 data-i18n="apTitle">소리를 지키기 위해 영상을 껐습니다</h3>
+      <div data-i18n="apLead">연결이 약해져서 영상을 잠시 멈췄습니다. 목소리는 그대로 들립니다.</div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button class="ctl" id="cMic" onclick="toggleMic()">
+      <span class="ico" id="cMicIco">🎙</span><span data-i18n="cMic">마이크</span>
+    </button>
+    <button class="ctl" id="cCam" onclick="toggleCam()">
+      <span class="ico" id="cCamIco">📷</span><span data-i18n="cCam">카메라</span>
+    </button>
+    <button class="ctl" id="cShare" onclick="toggleShare()">
+      <span class="ico">🖥</span><span data-i18n="cShare">교재 보이기</span>
+    </button>
+    <button class="ctl" id="cAudio" onclick="toggleAudioFirst()">
+      <span class="ico">🔊</span><span data-i18n="cAudio">음성 우선</span>
+    </button>
+    <button class="ctl hidden" id="cPhoto" onclick="askPhoto()">
+      <span class="ico">📸</span><span data-i18n="cPhoto">사진</span>
+    </button>
+    <button class="ctl leave" onclick="leaveRoom()">
+      <span class="ico">✕</span><span data-i18n="cLeave">나가기</span>
+    </button>
+  </div>
+</section>
+
+<script>
+/* ==================================================================
+   i18n
+   ================================================================== */
+var I18N = {
+  chkEyebrow:{ko:'입장 전 점검 · CHECK', en:'BEFORE YOU JOIN'},
+  chkTitle:{ko:'수업 들어가기 전에 3초만', en:'Three seconds before class'},
+  chkLead:{ko:'마이크와 카메라가 잘 되는지 먼저 확인합니다. 여기서 잘 되면 수업 중에도 잘 됩니다.',
+           en:'Let’s check your mic and camera first. If they work here, they’ll work in class.'},
+  chkAllow:{ko:'아래 [점검 시작]을 누르고, 브라우저가 묻는 <b>허용</b>을 눌러 주세요.',
+            en:'Tap [Start check] below, then tap <b>Allow</b> when your browser asks.'},
+  chkMic:{ko:'마이크', en:'Microphone'},
+  chkCam:{ko:'카메라', en:'Camera'},
+  chkNet:{ko:'인터넷 연결', en:'Internet'},
+  chkWait:{ko:'확인 전', en:'Not checked'},
+  chkBtn:{ko:'점검 시작', en:'Start check'},
+  joinBtn:{ko:'수업 들어가기', en:'Join class'},
+  chkTip:{ko:'<b>소리가 잘 안 들릴 때</b> — 이어폰을 쓰시고, 수업 중 <b>[음성 우선]</b> 버튼을 누르면 영상을 끄고 소리에 모든 연결을 씁니다.',
+          en:'<b>If audio is poor</b> — use earphones, and tap <b>[Audio first]</b> in class to turn off video and give everything to sound.'},
+  chkOkMic:{ko:'잘 들립니다', en:'Sounds good'},
+  chkLowMic:{ko:'소리가 작아요', en:'Very quiet'},
+  chkNoMic:{ko:'마이크를 못 찾았어요', en:'No microphone'},
+  chkOkCam:{ko:'잘 보입니다', en:'Looks good'},
+  chkNoCam:{ko:'카메라 없음 (소리만 가능)', en:'No camera (audio only)'},
+  chkNetGood:{ko:'좋습니다', en:'Good'},
+  chkNetMid:{ko:'조금 느립니다', en:'A bit slow'},
+  chkNetBad:{ko:'느립니다 — 음성 우선을 권합니다', en:'Slow — audio-first recommended'},
+  errDenied:{ko:'브라우저가 마이크·카메라를 막았습니다. 주소창의 자물쇠(또는 ⓘ)를 눌러 <b>허용</b>으로 바꿔 주세요.',
+             en:'Your browser blocked the mic/camera. Tap the lock (or ⓘ) in the address bar and set it to <b>Allow</b>.'},
+  errNoDev:{ko:'마이크를 찾지 못했습니다. 이어폰을 꽂거나 다른 기기로 들어와 주세요.',
+            en:'No microphone found. Plug in earphones or try another device.'},
+  errCfg:{ko:'수업방 설정이 아직 안 됐습니다 (관리자 설정 필요).', en:'The class room is not configured yet (admin setup needed).'},
+  errRoom:{ko:'수업방 주소가 없습니다. [내 수업]에서 다시 들어와 주세요.',
+           en:'No room specified. Please enter again from [My class].'},
+  errToken:{ko:'수업방에 들어가지 못했습니다. 잠시 후 다시 눌러 주세요.',
+            en:'Could not join the room. Please try again in a moment.'},
+
+  waitBig:{ko:'상대방을 기다리고 있습니다', en:'Waiting for the other person'},
+  waitSub:{ko:'들어오면 이 화면에 바로 보입니다.', en:'They will appear here as soon as they join.'},
+  netBad:{ko:'연결 약함', en:'Weak connection'},
+  camOff:{ko:'카메라 꺼짐', en:'Camera off'},
+  meLabel:{ko:'나', en:'Me'},
+
+  reconTitle:{ko:'연결이 끊겼습니다 — 다시 잇고 있어요', en:'Disconnected — reconnecting'},
+  reconLead:{ko:'잠시만 기다려 주세요. 아무것도 누르지 않아도 됩니다.',
+             en:'Please wait a moment. You don’t need to do anything.'},
+  fbTitle:{ko:'연결이 계속 잘 안 됩니다', en:'The connection keeps failing'},
+  fbLead:{ko:'수업이 끊기지 않도록 구글 미트로 옮겨서 계속하세요.',
+          en:'Let’s move to Google Meet so your class isn’t interrupted.'},
+  fbGo:{ko:'구글 미트로 수업하기', en:'Continue on Google Meet'},
+  fbStay:{ko:'여기서 더 해보기', en:'Keep trying here'},
+  fbNone:{ko:'미트 주소가 등록되지 않았습니다. [내 수업]에서 확인해 주세요.',
+          en:'No Meet link is registered. Please check [My class].'},
+  apTitle:{ko:'소리를 지키기 위해 영상을 껐습니다', en:'Video paused to protect audio'},
+  apLead:{ko:'연결이 약해져서 영상을 잠시 멈췄습니다. 목소리는 그대로 들립니다.',
+          en:'Your connection weakened, so video is paused. Voice continues normally.'},
+
+  cMic:{ko:'마이크', en:'Mic'},
+  cCam:{ko:'카메라', en:'Camera'},
+  cShare:{ko:'교재 보이기', en:'Share'},
+  cAudio:{ko:'음성 우선', en:'Audio first'},
+  cPhoto:{ko:'사진', en:'Photo'},
+  cLeave:{ko:'나가기', en:'Leave'},
+
+  askTitle:{ko:'선생님이 수업 사진을 남기고 싶어 합니다', en:'Your teacher would like to save a class photo'},
+  askLead:{ko:'봉사 증빙에 쓰는 사진입니다. 지금 화면이 한 장 저장됩니다. 괜찮으신가요?',
+           en:'It is used as volunteer proof. One snapshot of this screen will be saved. Is that okay?'},
+  askYes:{ko:'괜찮습니다', en:'That’s fine'},
+  askNo:{ko:'지금은 아니요', en:'Not now'},
+  pwTitle:{ko:'학생에게 물어보는 중입니다', en:'Asking your student'},
+  pwLead:{ko:'학생이 괜찮다고 하면 사진이 저장됩니다.', en:'The photo is saved once your student agrees.'},
+  photoOk:{ko:'사진을 저장했습니다. 선생님 방에서 보실 수 있습니다.',
+           en:'Photo saved. You can find it in your room.'},
+  photoNo:{ko:'학생이 사진을 원하지 않았습니다. 저장하지 않았습니다.',
+           en:'Your student declined. Nothing was saved.'},
+  photoFail:{ko:'사진을 저장하지 못했습니다. 잠시 후 다시 눌러 주세요.',
+             en:'Could not save the photo. Please try again.'},
+  photoNoPeer:{ko:'학생이 들어온 뒤에 눌러 주세요.', en:'Please wait until your student joins.'},
+
+  endEyebrow:{ko:'수업 후 · AFTER CLASS', en:'AFTER CLASS'},
+  endTitle:{ko:'수고하셨습니다', en:'Well done'},
+  endMemoTitle:{ko:'오늘 어디까지 했는지 한 줄만', en:'One line about today'},
+  endMemoLead:{ko:'기록이 쌓이면 봉사시간 근거와 월간리포트가 자동으로 만들어집니다.',
+               en:'These notes build your volunteer records and monthly report.'},
+  endMemoPh:{ko:'예) 1과 인사말 끝냄. 다음에 숫자 읽기.', en:'e.g. Finished Lesson 1 greetings. Numbers next time.'},
+  endMemoBtn:{ko:'기록하고 나가기', en:'Save and exit'},
+  endBack:{ko:'내 수업으로 돌아가기', en:'Back to my class'},
+  endStat:{ko:'오늘 수업 {m}분 · 연결 끊김 {r}회', en:'{m} minutes today · {r} reconnection(s)'},
+  endMemoOk:{ko:'기록했습니다. 수고하셨습니다.', en:'Saved. Thank you!'},
+  endMemoNeed:{ko:'한 줄만 적어 주세요.', en:'Please write one line first.'},
+  loading:{ko:'확인 중', en:'Checking'}
+};
+var LANG = 'ko';
+function t(k){ var e=I18N[k]; return e ? (e[LANG]||e.ko) : k; }
+
+function setLang(l){
+  LANG = l;
+  document.documentElement.lang = (l==='ko'?'ko':'en');
+  document.getElementById('btnKo').classList.toggle('on', l==='ko');
+  document.getElementById('btnEn').classList.toggle('on', l==='en');
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n')];
+    if(v) el.innerHTML = v[l]||v.ko;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n-ph')];
+    if(v) el.placeholder = v[l]||v.ko;
+  });
+  try{ localStorage.setItem('gks_lang', l); }catch(e){}
+  paintNet();
+  document.getElementById('myWho').textContent = t('meLabel');
+}
+
+/* ==================================================================
+   상태
+   ================================================================== */
+var LK = window.LivekitClient;
+var Q  = new URLSearchParams(location.search);
+var ROOM     = (Q.get('room')||'').trim();
+var MYNAME   = (Q.get('name')||'').trim();
+var ROLE     = (Q.get('role')||'student').trim();
+var FALLBACK = (Q.get('fb')||'').trim();
+var ME       = (Q.get('me')||'').replace(/\D/g,'');   /* 전화번호 = 개인 방의 열쇠 */
+var PARTNER  = (Q.get('with')||'').trim();            /* 짝 이름 */
+
+var room = null;              // LiveKit Room
+var preStream = null;         // 점검용 스트림
+var audioCtx = null, micTimer = null;
+var joinedAt = 0, timeTimer = null;
+var reconnects = 0, poorStreak = 0, autoAudioFirst = false, audioFirst = false;
+var netState = 'good';
+var logBuf = [];
+var SID = 0, lastMinutes = 0, sessionClosed = false;
+
+/* ================= 수업 기록 — 선생님이 따로 적지 않아도 쌓입니다 ================= */
+function apiPost(path, data, useBeacon){
+  if(!CLASS_API) return Promise.resolve(null);
+  var url = CLASS_API.replace(/\/$/,'') + path;
+  var body = JSON.stringify(data);
+  if(useBeacon && navigator.sendBeacon){
+    try{ navigator.sendBeacon(url, new Blob([body], {type:'text/plain;charset=UTF-8'})); }catch(e){}
+    return Promise.resolve(null);
+  }
+  return fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:body, keepalive:true})
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return null; });
+}
+
+function sessionStart(){
+  if(!ME) return Promise.resolve();   /* 시험 접속(전화번호 없음)은 기록하지 않습니다 */
+  return apiPost('/session/start', {
+    room:ROOM, me:ME, name:MYNAME, role:ROLE, partner:PARTNER
+  }).then(function(d){ if(d && d.sid) SID = d.sid; });
+}
+
+function sessionEnd(memo, useBeacon){
+  if(!SID) return Promise.resolve();
+  return apiPost('/session/end', {
+    sid:SID, minutes:lastMinutes, reconnects:reconnects, recorded:0, memo:memo||''
+  }, useBeacon);
+}
+
+function show(id){
+  ['viewCheck','viewEnded'].forEach(function(v){
+    document.getElementById(v).classList.toggle('hidden', v!==id);
+  });
+  var inRoom = (id==='viewRoom');
+  document.getElementById('viewRoom').classList.toggle('hidden', !inRoom);
+  document.getElementById('topBar').classList.toggle('hidden', inRoom);
+  document.getElementById('mainWrap').classList.toggle('hidden', inRoom);
+  window.scrollTo(0,0);
+}
+function msg(id, text, kind){
+  var el = document.getElementById(id);
+  el.className = 'msg ' + (kind||'err') + (text?' show':'');
+  el.innerHTML = text||'';
+}
+function busy(btnId, on, label){
+  var b = document.getElementById(btnId); if(!b) return;
+  if(on){
+    if(!b.getAttribute('data-label')) b.setAttribute('data-label', b.innerHTML);
+    b.disabled = true; b.innerHTML = '<span class="spin"></span>'+t('loading');
+  } else {
+    b.disabled = false; b.innerHTML = label || b.getAttribute('data-label') || '';
+  }
+}
+function dot(id, cls, txt){
+  var d = document.getElementById(id);
+  d.className = 'dot ' + (cls||'');
+  d.textContent = cls==='go' ? '✓' : cls==='no' ? '!' : cls==='mid' ? '~' : '·';
+  if(txt!=null){
+    var v = document.getElementById(id.replace('d','v'));
+    if(v){
+      var meter = v.querySelector('.meter');
+      v.textContent = txt;
+      if(meter) v.appendChild(meter);
+    }
+  }
+}
+
+/* ==================================================================
+   끊김 로그 — 6개월 뒤 판단의 근거가 됩니다
+   ================================================================== */
+function logEvent(event, detail){
+  logBuf.push({
+    ts: new Date().toISOString(),
+    room: ROOM, identity: MYNAME, role: ROLE, lang: LANG,
+    event: event,
+    quality: netState,
+    reconnects: reconnects,
+    duration_sec: joinedAt ? Math.round((Date.now()-joinedAt)/1000) : 0,
+    detail: detail==null ? '' : String(detail),
+    ua: navigator.userAgent.slice(0,180)
+  });
+  if(logBuf.length >= 8) flushLog(false);
+}
+function flushLog(useBeacon){
+  if(!CLASS_API || !logBuf.length) return;
+  var body = JSON.stringify({rows: logBuf});
+  logBuf = [];
+  var url = CLASS_API.replace(/\/$/,'') + '/log';
+  try{
+    if(useBeacon && navigator.sendBeacon){
+      /* text/plain 이어야 창을 닫는 순간에도 사전확인(preflight) 없이 나갑니다 */
+      navigator.sendBeacon(url, new Blob([body], {type:'text/plain;charset=UTF-8'}));
+      return;
+    }
+    fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:body, keepalive:true})
+      .catch(function(){});
+  }catch(e){}
+}
+setInterval(function(){ flushLog(false); }, 30000);
+/* 창을 그냥 닫아도 수업 기록이 남아야 합니다 */
+window.addEventListener('pagehide', function(){
+  if(SID && !sessionClosed){
+    lastMinutes = joinedAt ? Math.max(1, Math.round((Date.now()-joinedAt)/60000)) : 0;
+    sessionEnd('', true);
+    sessionClosed = true;
+  }
+  flushLog(true);
+});
+
+/* ==================================================================
+   1. 입장 전 점검
+   ================================================================== */
+function runCheck(){
+  msg('chkMsg','');
+  var label = t('chkBtn');
+  busy('btnCheck', true);
+
+  navigator.mediaDevices.getUserMedia({audio:true, video:true})
+    .catch(function(e){
+      /* 카메라가 없어도 소리만으로 수업할 수 있게 */
+      if(e && (e.name==='NotFoundError' || e.name==='OverconstrainedError')){
+        return navigator.mediaDevices.getUserMedia({audio:true, video:false});
+      }
+      throw e;
+    })
+    .then(function(stream){
+      busy('btnCheck', false, label);
+      preStream = stream;
+      document.getElementById('preOff').classList.add('hidden');
+
+      var vids = stream.getVideoTracks();
+      if(vids.length){
+        document.getElementById('preVideo').srcObject = stream;
+        dot('dCam','go', t('chkOkCam'));
+      } else {
+        dot('dCam','mid', t('chkNoCam'));
+        document.getElementById('preOff').classList.remove('hidden');
+        /* data-i18n 키까지 바꿔 둬야 언어를 바꿔도 문구가 되돌아가지 않습니다 */
+        var po = document.getElementById('preOffTxt');
+        po.setAttribute('data-i18n','chkNoCam');
+        po.innerHTML = t('chkNoCam');
+      }
+
+      startMicMeter(stream);
+      checkNet();
+      document.getElementById('btnJoin').disabled = false;
+      logEvent('check_ok', vids.length ? 'av' : 'audio_only');
+    })
+    .catch(function(e){
+      busy('btnCheck', false, label);
+      var name = e && e.name;
+      msg('chkMsg', name==='NotFoundError' ? t('errNoDev') : t('errDenied'));
+      dot('dMic','no', t('chkNoMic'));
+      logEvent('check_fail', name||'unknown');
+    });
+}
+
+function startMicMeter(stream){
+  try{
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    var src = audioCtx.createMediaStreamSource(stream);
+    var an = audioCtx.createAnalyser();
+    an.fftSize = 512;
+    src.connect(an);
+    var buf = new Uint8Array(an.frequencyBinCount);
+    var peak = 0;
+    micTimer = setInterval(function(){
+      an.getByteFrequencyData(buf);
+      var sum = 0;
+      for(var i=0;i<buf.length;i++) sum += buf[i];
+      var lvl = Math.min(100, Math.round((sum/buf.length) * 2.4));
+      document.getElementById('micBar').style.width = lvl + '%';
+      if(lvl > peak) peak = lvl;
+      if(peak >= 12) dot('dMic','go', t('chkOkMic'));
+      else if(peak >= 4) dot('dMic','mid', t('chkLowMic'));
+    }, 120);
+  }catch(e){
+    dot('dMic','mid', t('chkLowMic'));
+  }
+}
+
+/* 회선 점검 — 작은 파일을 내려받아 대략의 속도를 봅니다 */
+function checkNet(){
+  var t0 = Date.now();
+  var probe = 'https://speed.cloudflare.com/__down?bytes=200000';
+  fetch(probe, {cache:'no-store'})
+    .then(function(r){ return r.arrayBuffer(); })
+    .then(function(b){
+      var sec = (Date.now()-t0)/1000;
+      var mbps = (b.byteLength*8/1e6) / Math.max(sec, 0.05);
+      /* 선생님께 Mbps 숫자는 판단에 쓸모가 없습니다 — 숫자는 로그에만 남깁니다 */
+      if(mbps >= 3)      { dot('dNet','go',  t('chkNetGood')); }
+      else if(mbps >= 1) { dot('dNet','mid', t('chkNetMid')); }
+      else               { dot('dNet','no',  t('chkNetBad')); }
+      logEvent('netcheck', mbps.toFixed(2));
+    })
+    .catch(function(){
+      /* 속도 측정 실패는 수업을 막을 이유가 아닙니다 */
+      dot('dNet','mid', t('chkNetMid'));
+    });
+}
+
+function stopPre(){
+  if(micTimer){ clearInterval(micTimer); micTimer=null; }
+  if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx=null; }
+  if(preStream){ preStream.getTracks().forEach(function(tr){ tr.stop(); }); preStream=null; }
+  document.getElementById('preVideo').srcObject = null;
+}
+
+/* ==================================================================
+   2. 수업방 입장
+   ================================================================== */
+function joinRoom(){
+  msg('chkMsg','');
+  if(!LK_URL || !CLASS_API){ msg('chkMsg', t('errCfg')); return; }
+  if(!ROOM){ msg('chkMsg', t('errRoom')); return; }
+  if(!LK){ msg('chkMsg', t('errToken')); return; }
+
+  var label = t('joinBtn');
+  busy('btnJoin', true);
+
+  fetch(CLASS_API.replace(/\/$/,'') + '/token', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({room:ROOM, name:MYNAME, role:ROLE})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(!d || !d.token) throw new Error('NO_TOKEN');
+    return connect(d.token);
+  })
+  .catch(function(e){
+    busy('btnJoin', false, label);
+    msg('chkMsg', t('errToken'));
+    logEvent('join_fail', (e && e.message) || 'unknown');
+  });
+}
+
+function connect(token){
+  room = new LK.Room({
+    adaptiveStream: true,        /* 화면 크기에 맞춰 받는 화질을 자동 조절 */
+    dynacast: true,             /* 아무도 안 보는 화질은 아예 안 보냄 */
+    videoCaptureDefaults: { resolution: LK.VideoPresets.h360.resolution },
+    publishDefaults: {
+      simulcast: true,
+      videoCodec: 'vp8',
+      audioPreset: LK.AudioPresets.speech   /* 한국어 수업 = 말소리 우선 */
+    },
+    stopLocalTrackOnUnpublish: true
+  });
+
+  room
+    .on(LK.RoomEvent.TrackSubscribed, onTrackSub)
+    .on(LK.RoomEvent.TrackUnsubscribed, onTrackUnsub)
+    .on(LK.RoomEvent.ParticipantConnected, function(){ paintWaiting(); logEvent('peer_join'); })
+    .on(LK.RoomEvent.ParticipantDisconnected, function(){ paintWaiting(); logEvent('peer_leave'); })
+    .on(LK.RoomEvent.ConnectionQualityChanged, onQuality)
+    .on(LK.RoomEvent.DataReceived, onData)
+    .on(LK.RoomEvent.Reconnecting, function(){
+      reconnects++;
+      document.getElementById('bnrRecon').classList.remove('hidden');
+      logEvent('reconnecting');
+      if(reconnects >= 3) showFallback();
+    })
+    .on(LK.RoomEvent.Reconnected, function(){
+      document.getElementById('bnrRecon').classList.add('hidden');
+      logEvent('reconnected');
+    })
+    .on(LK.RoomEvent.Disconnected, function(reason){
+      logEvent('disconnected', reason);
+      if(document.getElementById('viewRoom').classList.contains('hidden')) return;
+      showFallback();
+    })
+    .on(LK.RoomEvent.MediaDevicesError, function(e){
+      logEvent('device_error', e && e.name);
+    });
+
+  return room.connect(LK_URL, token).then(function(){
+    /* 점검용 스트림을 놓아준 뒤 LiveKit이 기기를 잡습니다 */
+    stopPre();
+    /* 카메라가 없으면 마이크만으로도 수업이 되어야 합니다.
+       단, 접속 자체가 실패한 경우는 여기서 삼키지 않고 밖으로 넘깁니다 */
+    return room.localParticipant.enableCameraAndMicrophone()
+      .catch(function(e){
+        logEvent('cam_fail', e && e.name);
+        return room.localParticipant.setMicrophoneEnabled(true).catch(function(){});
+      });
+  })
+  .then(function(){
+    joinedAt = Date.now();
+    show('viewRoom');
+    paintLocal();
+    paintWaiting();
+    paintNet();
+    document.getElementById('pillTime').style.display = '';
+    timeTimer = setInterval(tickTime, 1000);
+    logEvent('joined');
+    flushLog(false);
+    sessionStart();   /* 입장 시각이 그대로 기록입니다 */
+  });
+}
+
+/* ---------- 상대방 트랙 ---------- */
+function onTrackSub(track){
+  if(track.kind === LK.Track.Kind.Video){
+    var box = document.getElementById('remoteBox');
+    box.innerHTML = '';
+    box.appendChild(track.attach());
+  } else if(track.kind === LK.Track.Kind.Audio){
+    var el = track.attach();
+    el.style.display = 'none';
+    document.body.appendChild(el);
+  }
+  paintWaiting();
+}
+function onTrackUnsub(track){
+  track.detach().forEach(function(el){ if(el.parentNode) el.parentNode.removeChild(el); });
+  paintWaiting();
+}
+
+function paintLocal(){
+  var pub = room.localParticipant.getTrackPublication(LK.Track.Source.Camera);
+  var v = document.getElementById('myVideo');
+  var off = document.getElementById('myOff');
+  if(pub && pub.track && !pub.isMuted){
+    pub.track.attach(v);
+    off.classList.add('hidden');
+  } else {
+    off.classList.remove('hidden');
+  }
+  document.getElementById('myWho').textContent = t('meLabel');
+}
+
+function paintWaiting(){
+  var hasRemote = !!document.getElementById('remoteBox').querySelector('video');
+  document.getElementById('waitBox').classList.toggle('hidden', hasRemote);
+  /* 사진은 선생님만, 학생이 들어온 뒤에만 */
+  document.getElementById('cPhoto')
+    .classList.toggle('hidden', !(ROLE === 'teacher' && hasRemote && ME));
+}
+
+/* ---------- 연결 품질 → 자동 음성 우선 ---------- */
+function onQuality(quality, participant){
+  if(!room || participant !== room.localParticipant) return;
+  if(quality === LK.ConnectionQuality.Poor || quality === LK.ConnectionQuality.Lost){
+    netState = 'poor'; poorStreak++;
+  } else if(quality === LK.ConnectionQuality.Good){
+    netState = 'good'; poorStreak = 0;
+  } else if(quality === LK.ConnectionQuality.Excellent){
+    netState = 'excellent'; poorStreak = 0;
+  }
+  paintNet();
+  logEvent('quality', quality);
+
+  /* 두 번 연속 나쁘면 소리를 지키기 위해 영상을 자동으로 끕니다 */
+  if(poorStreak >= 2 && !audioFirst){
+    audioFirst = true; autoAudioFirst = true;
+    applyAudioFirst(true);
+    document.getElementById('bnrAudio').classList.remove('hidden');
+    setTimeout(hideAudioBanner, 7000);
+    logEvent('auto_audio_first');
+  }
+  /* 우리가 자동으로 끈 경우에만 자동으로 되돌립니다 */
+  if(netState !== 'poor' && audioFirst && autoAudioFirst){
+    audioFirst = false; autoAudioFirst = false;
+    applyAudioFirst(false);
+    hideAudioBanner();
+    logEvent('auto_audio_first_off');
+  }
+}
+
+/* 연결이 좋을 때는 아무것도 띄우지 않습니다 — 늘 떠 있으면 학생이 불안해합니다 */
+function paintNet(){
+  var p = document.getElementById('pillNet');
+  var txt = document.getElementById('netTxt');
+  if(!p || !txt) return;
+  var bad = (netState === 'poor');
+  p.style.display = bad ? '' : 'none';
+  p.className = 'pill no';
+  txt.textContent = t('netBad');
+}
+
+function tickTime(){
+  if(!joinedAt) return;
+  var s = Math.round((Date.now()-joinedAt)/1000);
+  var m = String(Math.floor(s/60)).padStart(2,'0');
+  document.getElementById('timeTxt').textContent = m + ':' + String(s%60).padStart(2,'0');
+}
+
+/* ==================================================================
+   컨트롤
+   ================================================================== */
+function toggleMic(){
+  if(!room) return;
+  var on = room.localParticipant.isMicrophoneEnabled;
+  room.localParticipant.setMicrophoneEnabled(!on);
+  document.getElementById('cMic').classList.toggle('off', on);
+  document.getElementById('cMicIco').textContent = on ? '🔇' : '🎙';
+  logEvent(on ? 'mic_off' : 'mic_on');
+}
+function toggleCam(){
+  if(!room) return;
+  var on = room.localParticipant.isCameraEnabled;
+  room.localParticipant.setCameraEnabled(!on).then(function(){ paintLocal(); });
+  document.getElementById('cCam').classList.toggle('off', on);
+  document.getElementById('cCamIco').textContent = on ? '🚫' : '📷';
+  logEvent(on ? 'cam_off' : 'cam_on');
+}
+function toggleShare(){
+  if(!room) return;
+  var on = room.localParticipant.isScreenShareEnabled;
+  room.localParticipant.setScreenShareEnabled(!on).catch(function(){});
+  document.getElementById('cShare').classList.toggle('on', !on);
+  logEvent(on ? 'share_off' : 'share_on');
+}
+function toggleAudioFirst(){
+  audioFirst = !audioFirst;
+  autoAudioFirst = false;   /* 사람이 직접 누른 것은 자동으로 되돌리지 않습니다 */
+  applyAudioFirst(audioFirst);
+  logEvent(audioFirst ? 'audio_first_on' : 'audio_first_off');
+}
+function applyAudioFirst(on){
+  if(!room) return;
+  document.getElementById('cAudio').classList.toggle('on', on);
+  room.localParticipant.setCameraEnabled(!on).then(function(){ paintLocal(); }).catch(function(){});
+  /* 상대 영상도 받지 않아서 내려받는 양까지 줄입니다 */
+  room.remoteParticipants.forEach(function(p){
+    p.trackPublications.forEach(function(pub){
+      if(pub.kind === LK.Track.Kind.Video && pub.setSubscribed) pub.setSubscribed(!on);
+    });
+  });
+  document.getElementById('cCam').classList.toggle('off', on);
+}
+function hideAudioBanner(){ document.getElementById('bnrAudio').classList.add('hidden'); }
+
+/* ==================================================================
+   사진 — 학생 동의를 받고, 날짜·시간을 새겨서 저장합니다.
+   1365 증빙은 날짜·시간이 보여야 인정되므로 이미지 자체에 새깁니다.
+   ================================================================== */
+var photoBusy = false;
+
+function sendData(obj){
+  if(!room) return;
+  try{
+    room.localParticipant.publishData(
+      new TextEncoder().encode(JSON.stringify(obj)),
+      { reliable:true, topic:'gks' }
+    );
+  }catch(e){}
+}
+
+function onData(payload){
+  var d;
+  try{ d = JSON.parse(new TextDecoder().decode(payload)); }catch(e){ return; }
+
+  if(d.t === 'photo_ask' && ROLE !== 'teacher'){
+    document.getElementById('bnrAsk').classList.remove('hidden');
+    logEvent('photo_asked');
+  }
+  if(d.t === 'photo_yes' && ROLE === 'teacher'){
+    document.getElementById('bnrWaitPhoto').classList.add('hidden');
+    capturePhoto();
+  }
+  if(d.t === 'photo_no' && ROLE === 'teacher'){
+    document.getElementById('bnrWaitPhoto').classList.add('hidden');
+    photoBusy = false;
+    toast(t('photoNo'));
+    logEvent('photo_declined');
+  }
+}
+
+/* 선생님이 누릅니다 → 학생에게 물어봅니다 */
+function askPhoto(){
+  if(photoBusy) return;
+  if(!document.getElementById('remoteBox').querySelector('video')){
+    toast(t('photoNoPeer')); return;
+  }
+  photoBusy = true;
+  document.getElementById('bnrWaitPhoto').classList.remove('hidden');
+  sendData({t:'photo_ask'});
+  logEvent('photo_request');
+  /* 학생이 답을 안 하면 25초 뒤 스스로 접습니다 */
+  setTimeout(function(){
+    if(photoBusy){
+      photoBusy = false;
+      document.getElementById('bnrWaitPhoto').classList.add('hidden');
+    }
+  }, 25000);
+}
+
+/* 학생이 답합니다 */
+function photoAnswer(yes){
+  document.getElementById('bnrAsk').classList.add('hidden');
+  sendData({t: yes ? 'photo_yes' : 'photo_no'});
+  logEvent(yes ? 'photo_consent' : 'photo_refuse');
+}
+
+/* 두 사람 화면을 한 장으로 합치고 아래에 날짜·시간을 새깁니다 */
+function capturePhoto(){
+  var remote = document.getElementById('remoteBox').querySelector('video');
+  var mine   = document.getElementById('myVideo');
+  if(!remote){ photoBusy = false; return; }
+
+  var W = 1280, PANE = 640, PH = 480, BAR = 92;
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = PH + BAR;
+  var g = cv.getContext('2d');
+
+  g.fillStyle = '#1b2436';
+  g.fillRect(0, 0, cv.width, cv.height);
+
+  drawPane(g, mine,   0,     0, PANE, PH, true);   /* 내 화면은 거울처럼 보이므로 되돌립니다 */
+  drawPane(g, remote, PANE,  0, PANE, PH, false);
+
+  /* 아래 띠 — 여기가 증빙의 핵심입니다 */
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, PH, W, BAR);
+  g.fillStyle = '#4472C4';
+  g.fillRect(0, PH, W, 4);
+
+  var now = new Date();
+  var teacher = (ROLE === 'teacher') ? MYNAME : PARTNER;
+  var student = (ROLE === 'teacher') ? PARTNER : MYNAME;
+
+  g.textBaseline = 'alphabetic';
+  g.fillStyle = '#2e4d8f';
+  g.font = "700 27px 'Noto Sans KR', sans-serif";
+  g.fillText(fmtStamp(now), 24, PH + 42);
+
+  g.fillStyle = '#3d5680';
+  g.font = "400 19px 'Noto Sans KR', sans-serif";
+  g.fillText('선생님 ' + (teacher||'—') + '  ·  학생 ' + (student||'—'), 24, PH + 73);
+
+  g.fillStyle = '#7288ab';
+  g.font = "400 18px 'Noto Sans KR', sans-serif";
+  g.textAlign = 'right';
+  g.fillText('글로벌한국어나눔 · 1:1 한국어 튜터링', W - 24, PH + 42);
+  g.fillText('온라인 수업 · ' + (ROOM||''), W - 24, PH + 71);
+  g.textAlign = 'left';
+
+  var dataUrl = cv.toDataURL('image/jpeg', 0.86);
+
+  apiPost('/photo', {
+    me:ME, name:MYNAME, partner:PARTNER, kind:'proof',
+    dataUrl:dataUrl, taken_at:now.toISOString(),
+    caption:'수업 증빙 · ' + fmtStamp(now)
+  }).then(function(d){
+    photoBusy = false;
+    toast(d && d.ok ? t('photoOk') : t('photoFail'));
+    logEvent(d && d.ok ? 'photo_saved' : 'photo_save_fail');
+  });
+}
+
+/* 영상 비율을 지키면서 칸에 맞춰 그립니다 */
+function drawPane(g, video, x, y, w, h, mirror){
+  g.save();
+  g.beginPath(); g.rect(x, y, w, h); g.clip();
+  g.fillStyle = '#0f1725'; g.fillRect(x, y, w, h);
+
+  var vw = video && video.videoWidth, vh = video && video.videoHeight;
+  if(vw && vh){
+    var s = Math.min(w/vw, h/vh);
+    var dw = vw*s, dh = vh*s;
+    var dx = x + (w-dw)/2, dy = y + (h-dh)/2;
+    if(mirror){ g.translate(x + w, 0); g.scale(-1, 1); dx = w - (dx - x) - dw; }
+    try{ g.drawImage(video, dx, dy, dw, dh); }catch(e){}
+  } else {
+    g.fillStyle = '#5f7591';
+    g.font = "400 20px 'Noto Sans KR', sans-serif";
+    g.textAlign = 'center';
+    g.fillText('카메라 꺼짐', x + w/2, y + h/2);
+    g.textAlign = 'left';
+  }
+  g.restore();
+}
+
+function fmtStamp(d){
+  var dow = ['일','월','화','수','목','금','토'][d.getDay()];
+  var p = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + dow + ') '
+       + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/* 잠깐 떴다 사라지는 알림 */
+function toast(text){
+  var el = document.getElementById('toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.style.cssText = 'position:absolute;left:12px;right:12px;bottom:14px;z-index:12;'
+      + 'background:rgba(15,23,37,.92);color:#dbe7f8;border:1px solid rgba(219,231,248,.22);'
+      + 'border-radius:14px;padding:12px 15px;font-size:.9rem;text-align:center';
+    document.querySelector('#viewRoom .stage').appendChild(el);
+  }
+  el.textContent = text;
+  el.style.display = '';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.style.display = 'none'; }, 4200);
+}
+
+/* ---------- 미트 폴백 ---------- */
+function showFallback(){
+  var b = document.getElementById('bnrFallback');
+  if(!FALLBACK){
+    b.querySelector('[data-i18n="fbLead"]').innerHTML = t('fbNone');
+    b.querySelector('.row button').style.display = 'none';
+  }
+  b.classList.remove('hidden');
+  logEvent('fallback_shown');
+}
+function hideFallback(){ document.getElementById('bnrFallback').classList.add('hidden'); }
+function goFallback(){
+  if(!FALLBACK) return;
+  logEvent('fallback_used');
+  flushLog(true);
+  var url = /^https?:\/\//.test(FALLBACK) ? FALLBACK : 'https://' + FALLBACK;
+  location.href = url;
+}
+
+/* ---------- 나가기 ---------- */
+function leaveRoom(){
+  lastMinutes = joinedAt ? Math.max(1, Math.round((Date.now()-joinedAt)/60000)) : 0;
+  logEvent('left', lastMinutes);
+  if(timeTimer){ clearInterval(timeTimer); timeTimer=null; }
+  if(room){ try{ room.disconnect(); }catch(e){} room=null; }
+  flushLog(false);
+  sessionEnd('', false);
+  sessionClosed = true;
+
+  document.getElementById('endStat').textContent =
+    t('endStat').replace('{m}', lastMinutes).replace('{r}', reconnects);
+  show('viewEnded');
+}
+
+/* ---------- 진도 메모 (기존 포털과 같은 GAS로 보냅니다) ---------- */
+function saveMemo(){
+  var memo = document.getElementById('memo').value.trim();
+  msg('endMsg','');
+  if(!memo){ msg('endMsg', t('endMemoNeed'), 'err'); return; }
+  sessionEnd(memo, false);          /* 내 수업 기록에 진도가 붙습니다 */
+  msg('endMsg', t('endMemoOk'), 'ok');
+  document.getElementById('btnMemo').disabled = true;
+  setTimeout(function(){ location.href = 'my.html'; }, 1400);
+}
+
+/* ==================================================================
+   시작
+   ================================================================== */
+(function init(){
+  var l='ko';
+  try{
+    var stored = localStorage.getItem('gks_lang');
+    l = stored ? stored : (((navigator.language||'ko').slice(0,2)==='ko') ? 'ko' : 'en');
+  }catch(e){}
+  setLang(l==='en'?'en':'ko');
+
+  if(!ROOM) msg('chkMsg', t('errRoom'));
+  else if(!LK_URL || !CLASS_API) msg('chkMsg', t('errCfg'));
+})();
+</script>
+</body>
+</html>

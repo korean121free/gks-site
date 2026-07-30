@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내 수업 기록 | 글로벌한국어나눔</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon-32.png" sizes="32x32">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script>
+/* ★ class.html과 같은 주소를 넣습니다 (worker/README.md 참고) */
+var CLASS_API = "";   // 예: https://gks-class.korean121free.workers.dev
+</script>
+
+<style>
+:root{
+  --blue:#4472C4; --blue-d:#37589f; --orange:#ED7D31;
+  --navy:#2e4d8f; --ink:#2e4d8f; --body:#3d5680; --muted:#7288ab;
+  --bg:#f8fafd; --bg2:#eef3fa; --line:#dbe7f8; --white:#fff;
+  --ok:#2e7d5b; --warn:#b4611b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--body);
+  font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+  font-size:16px; line-height:1.65; word-break:keep-all; padding-bottom:48px;
+}
+h1,h2,h3{font-family:'Gowun Batang','Noto Sans KR',serif; color:var(--ink); margin:0; font-weight:700}
+a{color:var(--blue-d)}
+.hidden{display:none !important}
+
+.top{background:var(--white); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20}
+.top-in{
+  max-width:560px; margin:0 auto; padding:12px 18px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; flex:0 0 auto}
+.brand-mark{height:38px; width:auto; display:block}
+.brand-word{
+  font-family:'Gowun Batang',serif; color:var(--navy); font-size:1.06rem;
+  font-weight:700; letter-spacing:-.02em; line-height:1.2;
+}
+.brand-word b{color:var(--orange); font-weight:700}
+.brand-en{
+  display:block; font-family:'Noto Sans KR',sans-serif; font-weight:500;
+  font-size:.56rem; letter-spacing:2px; color:var(--muted);
+}
+@media (max-width:400px){ .brand-mark{height:32px} .brand-word{font-size:.96rem} }
+.langs{display:flex; gap:0; flex:0 0 auto; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+.langs button{
+  border:0; background:var(--white); color:var(--muted);
+  font-family:inherit; font-size:.72rem; padding:5px 11px; cursor:pointer;
+}
+.langs button.on{background:#dbe7f8; color:var(--ink); font-weight:700}
+
+.wrap{max-width:560px; margin:0 auto; padding:22px 18px 0}
+.card{
+  background:var(--white); border:1px solid var(--line); border-radius:18px;
+  padding:22px; margin-bottom:16px;
+}
+.eyebrow{
+  font-size:.72rem; letter-spacing:.14em; color:var(--orange);
+  font-weight:700; text-transform:uppercase; margin-bottom:8px;
+}
+.lead{margin:.5rem 0 0; color:var(--body)}
+.muted{color:var(--muted); font-size:.88rem}
+.hr{height:1px; background:var(--line); border:0; margin:18px 0}
+input[type=tel],input[type=text],input[type=date],textarea{
+  width:100%; border:1px solid var(--line); border-radius:12px;
+  padding:14px 15px; font-size:1.05rem; font-family:inherit; color:var(--ink);
+  background:var(--bg); outline:none;
+}
+input:focus,textarea:focus{border-color:var(--blue); background:var(--white)}
+input::placeholder,textarea::placeholder{color:#a9bcd6}
+textarea{font-size:.98rem; min-height:88px; resize:vertical; line-height:1.6}
+
+/* ---------- 할 말 / 쉼 고르기 ---------- */
+.tabs{display:flex; gap:0; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+.tabs button{
+  flex:1 1 0; border:0; background:var(--white); color:var(--muted);
+  font-family:inherit; font-size:.9rem; padding:11px 10px; cursor:pointer;
+}
+.tabs button.on{background:#dbe7f8; color:var(--ink); font-weight:700}
+.msg.ok{background:#eaf5ee; color:var(--ok); border:1px solid #cfe6d8}
+
+/* ---------- 프로필 사진 + 이름 ---------- */
+.who-row{display:flex; align-items:center; gap:14px; margin-top:4px}
+.avatar{
+  flex:0 0 auto; width:66px; height:66px; border-radius:50%; overflow:hidden;
+  border:1px solid var(--line); background:var(--bg2); cursor:pointer; padding:0;
+  position:relative; display:flex; align-items:center; justify-content:center;
+}
+.avatar img{width:100%; height:100%; object-fit:cover; display:block}
+.avatar-add{color:var(--muted); font-size:1.5rem; line-height:1; font-family:inherit}
+.avatar:hover{border-color:var(--blue)}
+@media (max-width:400px){ .avatar{width:56px; height:56px} }
+
+/* ---------- 지금 가르치는 학생 ---------- */
+.now{
+  margin-top:16px; background:var(--bg2); border:1px solid var(--line);
+  border-radius:14px; padding:13px 15px;
+}
+.now-l{display:block; font-size:.74rem; color:var(--muted); letter-spacing:.06em}
+.now-n{
+  display:block; font-family:'Gowun Batang',serif; color:var(--navy);
+  font-size:1.2rem; font-weight:700; margin-top:2px;
+}
+
+/* ---------- 펼쳐 보기 ---------- */
+details{margin:0}
+summary{
+  cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px;
+  font-family:'Gowun Batang',serif; color:var(--ink); font-size:1.12rem;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'▾'; margin-left:auto; color:var(--muted); font-size:.9rem}
+details[open] summary::after{content:'▴'}
+.cnt{
+  font-family:'Noto Sans KR',sans-serif; font-size:.72rem; font-weight:700;
+  background:#dbe7f8; color:var(--blue-d); padding:3px 10px; border-radius:999px;
+}
+
+/* ---------- 사진 격자 ---------- */
+.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:10px}
+.ph{
+  position:relative; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  background:var(--bg2);
+}
+.ph img{width:100%; aspect-ratio:16/10; object-fit:cover; display:block; cursor:zoom-in}
+.ph .cap{padding:7px 9px; font-size:.72rem; color:var(--muted); line-height:1.4}
+.ph .acts{display:flex; gap:0; border-top:1px solid var(--line)}
+.ph .acts a, .ph .acts button{
+  flex:1 1 0; text-align:center; border:0; background:var(--white); color:var(--blue-d);
+  font-family:inherit; font-size:.74rem; padding:7px 4px; cursor:pointer; text-decoration:none;
+}
+.ph .acts button{color:#a8511b}
+.ph .acts a + button{border-left:1px solid var(--line)}
+
+/* 크게 보기 */
+.lightbox{
+  position:fixed; inset:0; z-index:60; background:rgba(15,23,37,.93);
+  display:flex; align-items:center; justify-content:center; padding:18px; flex-direction:column; gap:14px;
+}
+.lightbox img{max-width:100%; max-height:78vh; border-radius:12px; display:block}
+.lightbox .row{display:flex; gap:9px}
+.lightbox .row a, .lightbox .row button{
+  border:1px solid rgba(219,231,248,.28); background:#1f293c; color:#dbe7f8;
+  border-radius:999px; padding:10px 18px; font-family:inherit; font-size:.9rem;
+  cursor:pointer; text-decoration:none;
+}
+
+/* ---------- 내가 남긴 말 ---------- */
+.mynote{
+  border-top:1px solid var(--line); margin-top:16px; padding-top:14px;
+}
+.mynote .row{padding:9px 0; font-size:.9rem}
+.mynote .row + .row{border-top:1px solid var(--line)}
+.mynote .when{color:var(--muted); font-size:.8rem; margin-right:7px}
+.btn{
+  display:block; width:100%; border:0; border-radius:999px;
+  padding:15px 18px; font-size:1.02rem; font-family:inherit; font-weight:700;
+  background:linear-gradient(135deg,var(--blue),var(--blue-d)); color:#fff;
+  cursor:pointer; margin-top:14px;
+}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.55; cursor:default}
+.btn.ghost{background:var(--white); color:var(--blue-d); border:1px solid var(--line); font-weight:500}
+.btn.sm{padding:11px 16px; font-size:.92rem; margin-top:10px}
+.msg{border-radius:12px; padding:12px 14px; font-size:.92rem; margin-top:14px; display:none}
+.msg.show{display:block}
+.msg.err{background:#fdf0ea; color:#a8511b; border:1px solid #f4d3bf}
+.note{
+  background:#fff6ef; border:1px solid #f6dcc6; border-radius:12px;
+  padding:12px 14px; font-size:.88rem; color:var(--warn); margin-top:14px;
+}
+/* 그냥 알려 주는 말은 주의를 끌 필요가 없습니다 — 주황은 챙길 일에만 씁니다 */
+.note.info{background:var(--bg2); border-color:var(--line); color:var(--body)}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- 누적 숫자 ---------- */
+.nums{display:flex; gap:10px; margin-top:16px}
+.num{
+  flex:1 1 0; background:var(--bg2); border-radius:14px; padding:14px 12px; text-align:center;
+}
+.num b{
+  display:block; font-family:'Gowun Batang',serif; color:var(--navy);
+  font-size:1.62rem; line-height:1.15; font-weight:700;
+}
+.num span{display:block; font-size:.74rem; color:var(--muted); margin-top:3px}
+
+/* ---------- 수업 목록 ---------- */
+.list{margin:0; padding:0; list-style:none}
+.item{
+  border-bottom:1px solid var(--line); padding:14px 0;
+}
+.item:last-child{border-bottom:0; padding-bottom:0}
+.item .head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+.item .day{font-family:'Gowun Batang',serif; color:var(--ink); font-weight:700; font-size:1.02rem}
+.item .who{font-size:.88rem; color:var(--body)}
+.item .mins{margin-left:auto; font-size:.84rem; color:var(--muted); white-space:nowrap}
+.item .memo{
+  margin-top:7px; background:var(--bg); border-radius:10px; padding:9px 12px;
+  font-size:.9rem; color:var(--body);
+}
+.item .flags{margin-top:6px; display:flex; gap:6px; flex-wrap:wrap}
+.flag{
+  font-size:.68rem; font-weight:700; letter-spacing:.02em;
+  background:#dbe7f8; color:var(--blue-d); padding:3px 9px; border-radius:999px;
+}
+.flag.warn{background:#fdeee2; color:#a8511b}
+.empty{text-align:center; color:var(--muted); font-size:.92rem; padding:22px 0}
+.foot{max-width:560px; margin:26px auto 0; padding:0 18px; text-align:center}
+.foot small{color:var(--muted); font-size:.78rem}
+@media (max-width:420px){ .card{padding:19px 17px} .num b{font-size:1.42rem} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="index.html" aria-label="글로벌한국어나눔 홈">
+      <img class="brand-mark" src="favicon-192.png" alt="">
+      <span class="brand-word">글로벌<b>한국어</b>나눔<span class="brand-en">GLOBAL KOREAN SHARING</span></span>
+    </a>
+    <div class="langs" role="group" aria-label="Language">
+      <button id="btnKo" class="on" onclick="setLang('ko')">한국어</button>
+      <button id="btnEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ========== 로그인 ========== -->
+  <section id="viewLogin" class="card">
+    <div class="eyebrow" data-i18n="inEyebrow">내 수업 기록 · MY RECORD</div>
+    <h1 style="font-size:1.42rem" data-i18n="inTitle">내 수업 기록 보기</h1>
+    <p class="lead" data-i18n="inLead">등록하실 때 알려주신 전화번호와 이름을 넣어 주세요.</p>
+
+    <form onsubmit="doOpen(event)" style="margin-top:18px">
+      <input id="phone" type="tel" inputmode="numeric" autocomplete="tel"
+             placeholder="010-1234-5678" data-i18n-ph="phonePh">
+      <div style="height:10px"></div>
+      <input id="name" type="text" autocomplete="name" placeholder="이름 (예: 김선영)" data-i18n-ph="namePh">
+      <button class="btn" id="btnOpen" type="submit" data-i18n="inBtn">기록 보기</button>
+    </form>
+    <div id="inMsg" class="msg err"></div>
+  </section>
+
+  <!-- ========== 기록 ========== -->
+  <section id="viewRecord" class="hidden">
+
+    <div class="card">
+      <div class="eyebrow" data-i18n="recEyebrow">내 수업 기록 · MY RECORD</div>
+
+      <!-- 프로필 사진 + 이름 -->
+      <div class="who-row">
+        <button type="button" class="avatar" id="avatar" onclick="pickFile('profile')"
+                data-i18n-title="avatarTip" title="눌러서 프로필 사진 바꾸기">
+          <img id="avatarImg" alt="" class="hidden">
+          <span class="avatar-add" id="avatarAdd">＋</span>
+        </button>
+        <div style="min-width:0">
+          <h1 id="hello" style="font-size:1.42rem">—</h1>
+          <p class="muted" id="since" style="margin:.2rem 0 0"></p>
+        </div>
+      </div>
+
+      <div class="nums">
+        <div class="num"><b id="nCount">0</b><span data-i18n="nCount">수업 횟수</span></div>
+        <div class="num"><b id="nHours">0</b><span data-i18n="nHours">쌓인 시간</span></div>
+        <div class="num"><b id="nMonth">0</b><span data-i18n="nMonth">이번 달</span></div>
+      </div>
+
+      <!-- 지금 가르치는 학생 — 늘 보입니다 -->
+      <div id="nowBox" class="now hidden">
+        <span class="now-l" data-i18n="nowLabel">지금 가르치는 학생</span>
+        <span class="now-n" id="nowNames">—</span>
+      </div>
+
+      <div id="gapNote" class="note hidden"></div>
+
+      <button class="btn ghost sm" onclick="location.href='portal.html'" data-i18n="goClass">수업 들어가기</button>
+    </div>
+
+    <!-- ========== 1365 신청 ========== -->
+    <div class="card" id="fileCard">
+      <div class="eyebrow" data-i18n="fEyebrow">봉사시간 · 1365</div>
+      <h2 style="font-size:1.18rem" id="fTitle">—</h2>
+      <p class="muted" style="margin:.4rem 0 0" id="fLead"></p>
+      <div id="fState" class="note info hidden"></div>
+      <button class="btn orange hidden" id="btnFile" onclick="requestFiling()" data-i18n="fBtn">이번 달 1365 신청하기</button>
+      <button class="btn ghost sm hidden" id="btnFileCancel" onclick="cancelFiling()" data-i18n="fCancel">신청 취소</button>
+      <div id="fMsg" class="msg"></div>
+      <div id="fPast" class="mynote hidden"></div>
+    </div>
+
+    <!-- ========== 파송증 ========== -->
+    <div class="card">
+      <details>
+        <summary><b data-i18n="certTitle">파송증</b></summary>
+        <p class="muted" style="margin:.5rem 0 0" data-i18n="certLead">
+          본부에서 받은 파송증을 여기에 보관하실 수 있습니다. 눌러서 크게 보고 내려받을 수 있습니다.
+        </p>
+        <div class="grid" id="gridCert" style="margin-top:14px"></div>
+        <div class="empty hidden" id="emptyCert" data-i18n="emptyCert">아직 보관된 것이 없습니다.</div>
+        <button class="btn ghost sm" onclick="pickFile('cert')" data-i18n="upCert">파송증 올리기</button>
+      </details>
+    </div>
+
+    <!-- ========== 1365 신청 정보 ========== -->
+    <div class="card">
+      <details id="dtInfo">
+        <summary><b data-i18n="infoTitle">1365 신청 정보</b> <span class="cnt warn hidden" id="infoNeed" data-i18n="infoNeed">한 번만 넣어 주세요</span></summary>
+        <p class="muted" style="margin:.5rem 0 0" data-i18n="infoLead">
+          본부가 여러 선생님 몫을 모아 단체 이름으로 한 번에 신청합니다. 신청서에 들어가는 값이라 한 번만 넣어 주시면 됩니다.
+        </p>
+        <div style="margin-top:14px">
+          <label class="muted" style="display:block; margin-bottom:6px" data-i18n="birthLabel">생년월일</label>
+          <input id="birth" type="text" inputmode="numeric" placeholder="1968.04.28" data-i18n-ph="birthPh">
+          <div style="height:12px"></div>
+          <label class="muted" style="display:block; margin-bottom:6px" data-i18n="portalLabel">1365포털 ID (없으면 비워 두세요 — 전화번호가 대신 들어갑니다)</label>
+          <input id="portalId" type="text" autocomplete="off" placeholder="bsuwk613" data-i18n-ph="portalPh">
+          <button class="btn ghost sm" onclick="saveInfo()" id="btnInfo" data-i18n="infoBtn">저장하기</button>
+          <div id="infoMsg" class="msg"></div>
+        </div>
+      </details>
+    </div>
+
+    <!-- ========== 매칭표 ========== -->
+    <div class="card">
+      <details>
+        <summary><b data-i18n="pairTitle">함께한 학생 · 매칭표</b> <span class="cnt" id="cPairs">0</span></summary>
+        <p class="muted" style="margin:.5rem 0 0" data-i18n="pairLead">
+          지금까지 함께한 학생 전체입니다. 수업 기록에서 저절로 만들어집니다.
+        </p>
+        <div class="hr"></div>
+        <div id="listPairs"></div>
+        <div class="empty hidden" id="emptyPairs" data-i18n="emptyPairs">아직 함께한 학생이 없습니다.</div>
+      </details>
+    </div>
+
+    <!-- ========== 사진 보관함 ========== -->
+    <div class="card">
+      <div class="eyebrow" data-i18n="phEyebrow">사진 보관함 · PHOTOS</div>
+      <h2 style="font-size:1.18rem" data-i18n="phTitle">수업 사진</h2>
+      <p class="muted" style="margin:.4rem 0 12px" data-i18n="phLead">
+        수업 중 <b>[사진]</b>을 누르면 학생에게 물어본 뒤, 날짜와 시간이 새겨진 사진이 여기에 쌓입니다.
+        1365 증빙에는 이 사진을 내려받아 쓰시면 됩니다.
+      </p>
+
+      <div class="tabs">
+        <button type="button" id="pkProof" class="on" onclick="setPKind('proof')" data-i18n="pkProof">수업 증빙</button>
+        <button type="button" id="pkFree" onclick="setPKind('free')" data-i18n="pkFree">자유 사진</button>
+      </div>
+
+      <div class="grid" id="gridPhotos" style="margin-top:14px"></div>
+      <div class="empty hidden" id="emptyPhotos" data-i18n="emptyPhotos">아직 사진이 없습니다.</div>
+
+      <button class="btn ghost sm" onclick="pickFile('free')" data-i18n="upFree">내 컴퓨터에서 사진 올리기</button>
+      <div id="phMsg" class="msg"></div>
+    </div>
+
+    <input type="file" id="fileIn" accept="image/*" class="hidden">
+
+    <!-- ========== 본부에 한마디 ========== -->
+    <div class="card">
+      <div class="eyebrow" data-i18n="msgEyebrow">본부에 한마디 · MESSAGE</div>
+      <h2 style="font-size:1.18rem" data-i18n="msgTitle">본부에 전할 말이 있으신가요</h2>
+      <p class="muted" style="margin:.4rem 0 12px" data-i18n="msgLead">
+        수업 기록은 저절로 쌓이지만 사정은 저희가 알 수 없습니다. 편하게 적어 주세요.
+      </p>
+
+      <div class="tabs" role="group">
+        <button type="button" id="tabMsg" class="on" onclick="setKind('message')" data-i18n="tabMsg">할 말 남기기</button>
+        <button type="button" id="tabPause" onclick="setKind('pause')" data-i18n="tabPause">잠시 쉽니다</button>
+      </div>
+
+      <div id="pauseBox" class="hidden" style="margin-top:12px">
+        <label class="muted" style="display:block; margin-bottom:6px" data-i18n="untilLabel">언제까지 쉬시나요? (대략도 괜찮습니다)</label>
+        <input id="until" type="date">
+        <p class="muted" style="margin:8px 0 0; font-size:.84rem" data-i18n="untilHelp">
+          이 기간에는 짝이 "챙길 명단"에 뜨지 않습니다. 그냥 쉬셔도 됩니다.
+        </p>
+      </div>
+
+      <textarea id="noteBody" style="margin-top:12px"
+                placeholder="예) 학생이 시험기간이라 두 달 쉬기로 했습니다. 9월에 다시 시작합니다."
+                data-i18n-ph="msgPh"></textarea>
+      <button class="btn orange" id="btnNote" onclick="sendNote()" data-i18n="msgBtn">보내기</button>
+      <div id="noteMsg" class="msg"></div>
+
+      <div id="myNotes"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1.18rem" data-i18n="listTitle">지난 수업</h2>
+      <p class="muted" style="margin:.35rem 0 4px" data-i18n="listLead">
+        수업에 들어가고 나오는 것만으로 저절로 쌓입니다.
+      </p>
+      <div class="hr"></div>
+      <ul class="list" id="list"></ul>
+      <div class="empty hidden" id="empty" data-i18n="empty">아직 기록된 수업이 없습니다.</div>
+    </div>
+
+    <button class="btn ghost sm" onclick="logout()" data-i18n="logout">다른 사람으로 보기</button>
+  </section>
+
+</main>
+
+<div class="foot">
+  <small data-i18n="foot">글로벌한국어나눔 · 한국에서 공부하는 유학생을 위한 무료 1:1 한국어 튜터링</small>
+</div>
+
+<script>
+/* ================= i18n ================= */
+var I18N = {
+  inEyebrow:{ko:'내 수업 기록 · MY RECORD', en:'MY RECORD'},
+  inTitle:{ko:'내 수업 기록 보기', en:'See my lesson record'},
+  inLead:{ko:'등록하실 때 알려주신 전화번호와 이름을 넣어 주세요.',
+          en:'Enter the phone number and name you registered with.'},
+  phonePh:{ko:'010-1234-5678', en:'010-1234-5678'},
+  namePh:{ko:'이름 (예: 김선영)', en:'Your name'},
+  inBtn:{ko:'기록 보기', en:'Open'},
+
+  recEyebrow:{ko:'내 수업 기록 · MY RECORD', en:'MY RECORD'},
+  helloT:{ko:'{n} 선생님', en:'{n}'},
+  helloS:{ko:'{n} 님', en:'{n}'},
+  since:{ko:'{d}부터 함께하고 있습니다', en:'Together since {d}'},
+  sinceNone:{ko:'첫 수업을 기다리고 있습니다', en:'Waiting for your first lesson'},
+  nCount:{ko:'수업 횟수', en:'Lessons'},
+  nHours:{ko:'쌓인 시간', en:'Total time'},
+  nMonth:{ko:'이번 달', en:'This month'},
+  fEyebrow:{ko:'봉사시간 · 1365', en:'VOLUNTEER HOURS · 1365'},
+  fTitle:{ko:'{m}월 봉사시간 신청', en:'File hours for {m}'},
+  fLead:{ko:'{n}회 · {t} 쌓였습니다. 신청하시면 본부가 다른 선생님들 몫과 함께 모아 단체 이름으로 성남시에 보냅니다.',
+         en:'{n} lessons · {t}. Request it and HQ files it together with everyone else under the organization’s name.'},
+  fLeadNone:{ko:'이번 달 수업 기록이 아직 없습니다. 수업하시면 여기에서 신청하실 수 있습니다.',
+             en:'No lessons recorded this month yet. Once you teach, you can request here.'},
+  fBtn:{ko:'이번 달 1365 신청하기', en:'Request 1365 filing'},
+  fCancel:{ko:'신청 취소', en:'Cancel request'},
+  fDone:{ko:'신청했습니다. 본부가 월말에 모아서 보냅니다. 따로 하실 일은 없습니다.',
+         en:'Requested. HQ will file it at month end. Nothing more to do.'},
+  fSent:{ko:'본부가 성남시에 보냈습니다. 1365포털에 반영되기까지 며칠 걸릴 수 있습니다.',
+         en:'HQ has submitted it. It may take a few days to appear on the 1365 portal.'},
+  fNoLesson:{ko:'이번 달 수업 기록이 없어서 신청할 것이 없습니다.', en:'No lessons this month, so there is nothing to file.'},
+  fCancelled:{ko:'신청을 취소했습니다.', en:'Request cancelled.'},
+  fNeedInfo:{ko:'먼저 위 <b>1365 신청 정보</b>에 생년월일을 넣어 주세요. 신청서에 들어가는 값입니다.',
+             en:'Please add your date of birth under <b>Volunteer filing details</b> first — it goes on the form.'},
+  fPastTitle:{ko:'지난 신청', en:'Past requests'},
+  fStReq:{ko:'신청함', en:'Requested'},
+  fStSent:{ko:'제출 완료', en:'Submitted'},
+  fOptional:{ko:'신청은 선택입니다. 안 누르셔도 수업 기록은 그대로 남습니다.',
+             en:'Filing is optional. Your lesson record stays either way.'},
+  gapNote:{ko:'마지막 수업이 {d}일 전입니다. 짝에게 안부를 전해 보시면 어떨까요?',
+           en:'Your last lesson was {d} days ago. Perhaps say hello to your partner?'},
+  goClass:{ko:'수업 들어가기', en:'Go to class'},
+
+  listTitle:{ko:'지난 수업', en:'Past lessons'},
+  listLead:{ko:'수업에 들어가고 나오는 것만으로 저절로 쌓입니다.',
+            en:'It builds up on its own — just by joining and leaving class.'},
+  empty:{ko:'아직 기록된 수업이 없습니다.', en:'No lessons recorded yet.'},
+  withT:{ko:'{n} 선생님과', en:'with {n}'},
+  withS:{ko:'{n} 학생과', en:'with {n}'},
+  minsUnit:{ko:'{m}분', en:'{m} min'},
+  hoursUnit:{ko:'{h}시간', en:'{h}h'},
+  flagRec:{ko:'녹음 있음', en:'Recorded'},
+  flagCut:{ko:'끊김 {n}회', en:'{n} reconnect(s)'},
+  flagOpen:{ko:'끝맺음 없음', en:'Not closed'},
+  noMemo:{ko:'진도 메모가 없습니다.', en:'No progress note.'},
+
+  nowLabel:{ko:'지금 가르치는 학생', en:'Currently teaching'},
+  avatarTip:{ko:'눌러서 프로필 사진 바꾸기', en:'Tap to change your profile photo'},
+  certTitle:{ko:'파송증', en:'Certificate'},
+  certLead:{ko:'본부에서 받은 파송증을 여기에 보관하실 수 있습니다. 눌러서 크게 보고 내려받을 수 있습니다.',
+            en:'Keep your certificate here. Tap to view large and download.'},
+  emptyCert:{ko:'아직 보관된 것이 없습니다.', en:'Nothing saved yet.'},
+  upCert:{ko:'파송증 올리기', en:'Upload certificate'},
+
+  infoTitle:{ko:'1365 신청 정보', en:'Volunteer filing details'},
+  infoNeed:{ko:'한 번만 넣어 주세요', en:'One-time setup'},
+  infoLead:{ko:'본부가 여러 선생님 몫을 모아 단체 이름으로 한 번에 신청합니다. 신청서에 들어가는 값이라 한 번만 넣어 주시면 됩니다.',
+            en:'HQ files everyone’s hours together under the organization’s name. These values go on the form — just once.'},
+  birthLabel:{ko:'생년월일', en:'Date of birth'},
+  birthPh:{ko:'1968.04.28', en:'1968.04.28'},
+  portalLabel:{ko:'1365포털 ID (없으면 비워 두세요 — 전화번호가 대신 들어갑니다)',
+               en:'1365 portal ID (leave blank to use your phone number)'},
+  portalPh:{ko:'bsuwk613', en:'bsuwk613'},
+  infoBtn:{ko:'저장하기', en:'Save'},
+  infoOk:{ko:'저장했습니다. 신청서에 이 값이 들어갑니다.', en:'Saved. These will appear on the form.'},
+  infoBad:{ko:'생년월일을 8자리로 넣어 주세요. (예: 19680428 또는 1968.04.28)',
+           en:'Please enter 8 digits for the date of birth (e.g. 19680428).'},
+
+  pairTitle:{ko:'함께한 학생 · 매칭표', en:'Students · matching table'},
+  pairLead:{ko:'지금까지 함께한 학생 전체입니다. 수업 기록에서 저절로 만들어집니다.',
+            en:'Everyone you have taught. Built automatically from your lesson records.'},
+  emptyPairs:{ko:'아직 함께한 학생이 없습니다.', en:'No students yet.'},
+  pairNow:{ko:'현재', en:'Current'},
+  pairPast:{ko:'과거', en:'Past'},
+  pairPaused:{ko:'쉬는 중', en:'Paused'},
+  pairSpan:{ko:'{a} ~ {b}', en:'{a} – {b}'},
+  pairCount:{ko:'{n}회 · {m}', en:'{n} lessons · {m}'},
+
+  phEyebrow:{ko:'사진 보관함 · PHOTOS', en:'PHOTOS'},
+  phTitle:{ko:'수업 사진', en:'Class photos'},
+  phLead:{ko:'수업 중 <b>[사진]</b>을 누르면 학생에게 물어본 뒤, 날짜와 시간이 새겨진 사진이 여기에 쌓입니다. 1365 증빙에는 이 사진을 내려받아 쓰시면 됩니다.',
+          en:'Tap <b>[Photo]</b> during class — after your student agrees, a snapshot stamped with date and time is saved here. Download these for volunteer proof.'},
+  pkProof:{ko:'수업 증빙', en:'Proof'},
+  pkFree:{ko:'자유 사진', en:'Free'},
+  emptyPhotos:{ko:'아직 사진이 없습니다.', en:'No photos yet.'},
+  upFree:{ko:'내 컴퓨터에서 사진 올리기', en:'Upload from my computer'},
+  phView:{ko:'크게', en:'View'},
+  phDown:{ko:'내려받기', en:'Download'},
+  phDel:{ko:'지우기', en:'Delete'},
+  phClose:{ko:'닫기', en:'Close'},
+  phDelAsk:{ko:'이 사진을 지울까요? 되돌릴 수 없습니다.', en:'Delete this photo? This cannot be undone.'},
+  phUpOk:{ko:'사진을 올렸습니다.', en:'Photo uploaded.'},
+  phUpBig:{ko:'사진이 너무 큽니다. 6MB 이하로 올려 주세요.', en:'That photo is too large. Please keep it under 6MB.'},
+  phUpFail:{ko:'올리지 못했습니다. 잠시 후 다시 해 주세요.', en:'Upload failed. Please try again.'},
+  kindCert:{ko:'파송증', en:'Certificate'},
+  kindProfile:{ko:'프로필', en:'Profile'},
+
+  msgEyebrow:{ko:'본부에 한마디 · MESSAGE', en:'MESSAGE TO HQ'},
+  msgTitle:{ko:'본부에 전할 말이 있으신가요', en:'Anything to tell us?'},
+  msgLead:{ko:'수업 기록은 저절로 쌓이지만 사정은 저희가 알 수 없습니다. 편하게 적어 주세요.',
+           en:'Lessons record themselves, but only you know the circumstances. Please write freely.'},
+  tabMsg:{ko:'할 말 남기기', en:'Leave a note'},
+  tabPause:{ko:'잠시 쉽니다', en:'Taking a break'},
+  untilLabel:{ko:'언제까지 쉬시나요? (대략도 괜찮습니다)', en:'Until when? (an estimate is fine)'},
+  untilHelp:{ko:'이 기간에는 짝이 "챙길 명단"에 뜨지 않습니다. 그냥 쉬셔도 됩니다.',
+             en:'Your pair won’t appear on the follow-up list during this time. Just rest.'},
+  msgPh:{ko:'예) 학생이 시험기간이라 두 달 쉬기로 했습니다. 9월에 다시 시작합니다.',
+         en:'e.g. My student has exams, so we agreed to pause for two months. Back in September.'},
+  msgBtn:{ko:'보내기', en:'Send'},
+  msgOk:{ko:'전했습니다. 본부에서 확인합니다.', en:'Sent. We’ll read it.'},
+  msgPauseOk:{ko:'쉬는 것으로 표시했습니다. 편히 쉬시고, 다시 시작하실 때 수업에 들어오시면 됩니다.',
+              en:'Marked as paused. Rest well — just join a class when you’re ready to return.'},
+  msgNeed:{ko:'한 줄만 적어 주세요.', en:'Please write one line.'},
+  myNotesTitle:{ko:'내가 남긴 말', en:'My notes'},
+  kindPause:{ko:'쉼', en:'Paused'},
+  kindResume:{ko:'복귀', en:'Resumed'},
+  untilTxt:{ko:'{d}까지', en:'until {d}'},
+  seenYes:{ko:'확인함', en:'Read'},
+  seenNo:{ko:'확인 전', en:'Unread'},
+
+  logout:{ko:'다른 사람으로 보기', en:'View as someone else'},
+  foot:{ko:'글로벌한국어나눔 · 한국에서 공부하는 유학생을 위한 무료 1:1 한국어 튜터링',
+        en:'Global Korean Sharing · Free 1:1 Korean tutoring for international students in Korea'},
+
+  errEmpty:{ko:'전화번호와 이름을 모두 넣어 주세요.', en:'Please enter both phone number and name.'},
+  errNone:{ko:'그 번호와 이름으로 된 기록을 찾지 못했습니다. 등록하실 때 쓴 이름 그대로 넣어 주세요.',
+           en:'No record found for that number and name. Please use the name you registered with.'},
+  errCfg:{ko:'기록 서버가 아직 연결되지 않았습니다 (관리자 설정 필요).',
+          en:'The record server is not connected yet (admin setup needed).'},
+  errNet:{ko:'연결이 잘 안 됐어요. 잠시 후 다시 눌러 주세요.', en:'Connection failed. Please try again.'},
+  loading:{ko:'확인 중', en:'Checking'}
+};
+var LANG = 'ko';
+function t(k){ var e=I18N[k]; return e ? (e[LANG]||e.ko) : k; }
+
+function setLang(l){
+  LANG = l;
+  document.documentElement.lang = (l==='ko'?'ko':'en');
+  document.getElementById('btnKo').classList.toggle('on', l==='ko');
+  document.getElementById('btnEn').classList.toggle('on', l==='en');
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n')];
+    if(v) el.innerHTML = v[l]||v.ko;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n-ph')];
+    if(v) el.placeholder = v[l]||v.ko;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(function(el){
+    var v = I18N[el.getAttribute('data-i18n-title')];
+    if(v) el.title = v[l]||v.ko;
+  });
+  try{ localStorage.setItem('gks_lang', l); }catch(e){}
+  if(DATA){ render(); renderMyNotes(); }
+}
+
+/* ================= 상태 ================= */
+var DATA = null;
+var ME = '', NAME = '', KIND = 'message', NOTES = [], PHOTOS = [];
+var PKIND = 'proof';   /* 사진 보관함에서 보고 있는 분류 */
+
+function show(id){
+  ['viewLogin','viewRecord'].forEach(function(v){
+    document.getElementById(v).classList.toggle('hidden', v!==id);
+  });
+  window.scrollTo(0,0);
+}
+function msg(id, text){
+  var el = document.getElementById(id);
+  el.className = 'msg err' + (text?' show':'');
+  el.innerHTML = text||'';
+}
+function busy(btnId, on, label){
+  var b = document.getElementById(btnId); if(!b) return;
+  if(on){
+    if(!b.getAttribute('data-label')) b.setAttribute('data-label', b.innerHTML);
+    b.disabled = true; b.innerHTML = '<span class="spin"></span>'+t('loading');
+  } else {
+    b.disabled = false; b.innerHTML = label || b.getAttribute('data-label') || '';
+  }
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+/* ================= 불러오기 ================= */
+function doOpen(ev){
+  if(ev) ev.preventDefault();
+  var phone = String(document.getElementById('phone').value||'').replace(/\D/g,'');
+  var name  = document.getElementById('name').value.trim();
+  msg('inMsg','');
+  if(!CLASS_API){ msg('inMsg', t('errCfg')); return; }
+  if(phone.length < 8 || !name){ msg('inMsg', t('errEmpty')); return; }
+
+  var label = t('inBtn');
+  busy('btnOpen', true);
+  load(phone, name).then(function(ok){
+    busy('btnOpen', false, label);
+    if(!ok) msg('inMsg', t('errNone'));
+  }).catch(function(){
+    busy('btnOpen', false, label);
+    msg('inMsg', t('errNet'));
+  });
+}
+
+/* 전화번호가 주소창에 남지 않도록 POST로 보냅니다 */
+function load(phone, name){
+  return fetch(CLASS_API.replace(/\/$/,'') + '/me', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({me:phone, name:name})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(!d || !d.ok || !d.rows || !d.rows.length) return false;
+    DATA = d; ME = phone; NAME = name;
+    NOTES = d.notes || [];
+    PHOTOS = d.photos || [];
+    try{
+      localStorage.setItem('gks_phone', phone);
+      localStorage.setItem('gks_name', name);
+    }catch(e){}
+    render();
+    show('viewRecord');
+    return true;
+  });
+}
+
+/* ================= 그리기 ================= */
+function render(){
+  if(!DATA) return;
+  var isT = DATA.role === 'teacher';
+
+  document.getElementById('hello').textContent =
+    t(isT?'helloT':'helloS').replace('{n}', DATA.me_name||'');
+
+  document.getElementById('since').textContent =
+    DATA.total.first_day ? t('since').replace('{d}', fmtDay(DATA.total.first_day)) : t('sinceNone');
+
+  document.getElementById('nCount').textContent = DATA.total.count || 0;
+  document.getElementById('nHours').textContent = fmtSpan(DATA.total.minutes || 0);
+  document.getElementById('nMonth').textContent = (DATA.month.count || 0);
+
+  renderFiling(isT);
+
+  /* 마지막 수업이 오래됐으면 부드럽게 알려 줍니다 — 이탈하기 전에 */
+  var gap = document.getElementById('gapNote');
+  var days = DATA.total.last_day ? daysSince(DATA.total.last_day) : -1;
+  if(days >= 14){
+    gap.textContent = t('gapNote').replace('{d}', days);
+    gap.classList.remove('hidden');
+  } else {
+    gap.classList.add('hidden');
+  }
+
+  /* 지금 가르치는 학생 — 늘 보이게 */
+  var cur = (DATA.pairs||[]).filter(function(p){ return p.current; });
+  document.getElementById('nowBox').classList.toggle('hidden', cur.length===0);
+  document.getElementById('nowNames').textContent = cur.map(function(p){
+    return p.partner + (p.paused ? ' (' + t('pairPaused') + ')' : '');
+  }).join(' · ');
+
+  renderPairs();
+  renderPhotos();
+  renderInfo();
+  renderMyNotes();
+
+  var ul = document.getElementById('list');
+  ul.innerHTML = '';
+  var rows = DATA.rows || [];
+  document.getElementById('empty').classList.toggle('hidden', rows.length>0);
+
+  rows.forEach(function(r){
+    var li = document.createElement('li');
+    li.className = 'item';
+
+    var who = r.partner
+      ? t(r.role==='teacher' ? 'withS' : 'withT').replace('{n}', esc(r.partner))
+      : '';
+
+    var h = '<div class="head">'
+          +   '<span class="day">' + fmtDay(r.day) + '</span>'
+          +   '<span class="who">' + who + '</span>'
+          +   '<span class="mins">' + t('minsUnit').replace('{m}', r.minutes||0) + '</span>'
+          + '</div>';
+
+    h += '<div class="memo">' + (r.memo ? esc(r.memo) : '<span style="color:#a9bcd6">'+t('noMemo')+'</span>') + '</div>';
+
+    var flags = [];
+    if(r.recorded) flags.push('<span class="flag">'+t('flagRec')+'</span>');
+    if(r.reconnects > 0) flags.push('<span class="flag warn">'+t('flagCut').replace('{n}', r.reconnects)+'</span>');
+    if(!r.minutes) flags.push('<span class="flag warn">'+t('flagOpen')+'</span>');
+    if(flags.length) h += '<div class="flags">' + flags.join('') + '</div>';
+
+    li.innerHTML = h;
+    ul.appendChild(li);
+  });
+}
+
+function fmtDay(d){
+  if(!d) return '';
+  var p = String(d).split('-');
+  if(p.length < 3) return String(d);
+  return LANG==='ko' ? (Number(p[1])+'월 '+Number(p[2])+'일')
+                     : (p[1]+'/'+p[2]);
+}
+function fmtSpan(mins){
+  if(mins < 60) return t('minsUnit').replace('{m}', mins);
+  return t('hoursUnit').replace('{h}', Math.round(mins/60));
+}
+function daysSince(day){
+  var d = new Date(day + 'T00:00:00');
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+
+/* ================= 매칭표 ================= */
+function renderPairs(){
+  var rows = DATA.pairs || [];
+  document.getElementById('cPairs').textContent = rows.length;
+  document.getElementById('emptyPairs').classList.toggle('hidden', rows.length>0);
+  var box = document.getElementById('listPairs');
+  box.innerHTML = '';
+  rows.forEach(function(p){
+    var div = document.createElement('div');
+    div.className = 'item';
+    var tag = p.paused ? '<span class="flag warn">'+t('pairPaused')+'</span>'
+            : p.current ? '<span class="flag">'+t('pairNow')+'</span>'
+            : '<span class="flag" style="background:var(--bg2);color:var(--muted)">'+t('pairPast')+'</span>';
+    div.innerHTML = '<div class="head">'
+      + '<span class="day">' + esc(p.partner) + '</span> ' + tag
+      + '<span class="mins">' + t('pairCount').replace('{n}', p.lessons).replace('{m}', fmtSpan(p.minutes)) + '</span>'
+      + '</div>'
+      + '<div class="muted" style="font-size:.84rem">'
+      +   t('pairSpan').replace('{a}', fmtDay(p.first_day)).replace('{b}', fmtDay(p.last_day))
+      + '</div>';
+    box.appendChild(div);
+  });
+}
+
+/* ================= 사진 보관함 ================= */
+function photoUrl(rkey, dl){
+  return CLASS_API.replace(/\/$/,'') + '/photo/get?k=' + encodeURIComponent(rkey) + (dl ? '&dl=1' : '');
+}
+
+function setPKind(k){
+  PKIND = k;
+  document.getElementById('pkProof').classList.toggle('on', k==='proof');
+  document.getElementById('pkFree').classList.toggle('on', k==='free');
+  renderPhotos();
+}
+
+function renderPhotos(){
+  paintGrid('gridPhotos', 'emptyPhotos',
+    PHOTOS.filter(function(p){ return p.kind === PKIND; }), true);
+  paintGrid('gridCert', 'emptyCert',
+    PHOTOS.filter(function(p){ return p.kind === 'cert'; }), true);
+
+  /* 프로필은 이름 옆 동그라미로 — 가장 최근에 올린 것 */
+  var prof = PHOTOS.filter(function(p){ return p.kind === 'profile'; })[0];
+  var img = document.getElementById('avatarImg');
+  var add = document.getElementById('avatarAdd');
+  if(prof){
+    img.src = photoUrl(prof.rkey);
+    img.classList.remove('hidden');
+    add.classList.add('hidden');
+  } else {
+    img.classList.add('hidden');
+    add.classList.remove('hidden');
+  }
+}
+
+/* ================= 1365 신청 (버튼 하나) ================= */
+function renderFiling(isTeacher){
+  var card = document.getElementById('fileCard');
+  card.classList.toggle('hidden', !isTeacher);
+  if(!isTeacher) return;
+
+  var m = (DATA.month || {});
+  var f = DATA.filing;
+  var ym = m.ym || '';
+  var monthNo = Number((ym.split('-')[1] || '0'));
+
+  document.getElementById('fTitle').textContent = t('fTitle').replace('{m}', monthNo);
+
+  var btn = document.getElementById('btnFile');
+  var cancel = document.getElementById('btnFileCancel');
+  var state = document.getElementById('fState');
+  var lead = document.getElementById('fLead');
+
+  if(!m.count){
+    lead.textContent = t('fLeadNone');
+    btn.classList.add('hidden'); cancel.classList.add('hidden'); state.classList.add('hidden');
+  } else if(f && f.status === 'submitted'){
+    lead.textContent = '';
+    state.innerHTML = t('fSent');
+    state.className = 'note info'; state.classList.remove('hidden');
+    btn.classList.add('hidden'); cancel.classList.add('hidden');
+  } else if(f){
+    lead.textContent = '';
+    state.innerHTML = t('fDone');
+    state.className = 'note info'; state.classList.remove('hidden');
+    btn.classList.add('hidden'); cancel.classList.remove('hidden');
+  } else {
+    lead.innerHTML = t('fLead').replace('{n}', m.count).replace('{t}', fmtSpan(m.minutes||0))
+                   + '<br><span style="font-size:.84rem">' + t('fOptional') + '</span>';
+    state.classList.add('hidden');
+    btn.classList.remove('hidden'); cancel.classList.add('hidden');
+  }
+
+  /* 지난 신청 */
+  var past = DATA.past_filings || [];
+  var pb = document.getElementById('fPast');
+  if(past.length){
+    pb.classList.remove('hidden');
+    pb.innerHTML = '<b style="font-size:.92rem; color:var(--ink)">'+t('fPastTitle')+'</b>'
+      + past.map(function(p){
+          var mm = Number((p.ym.split('-')[1]||'0'));
+          return '<div class="row"><span class="when">'+mm+'월</span>'
+               + '<span class="flag' + (p.status==='submitted' ? '' : ' warn') + '">'
+               + (p.status==='submitted' ? t('fStSent') : t('fStReq')) + '</span></div>';
+        }).join('');
+  } else { pb.classList.add('hidden'); pb.innerHTML=''; }
+}
+
+function requestFiling(){
+  msg2('fMsg','');
+  /* 생년월일이 없으면 신청서에 빈칸이 생깁니다 — 먼저 채우게 안내합니다 */
+  if(!(DATA.info && DATA.info.birth)){
+    msg2('fMsg','');
+    var el = document.getElementById('fMsg');
+    el.className = 'msg err show'; el.innerHTML = t('fNeedInfo');
+    document.getElementById('dtInfo').open = true;
+    document.getElementById('dtInfo').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  var label = t('fBtn');
+  busy('btnFile', true);
+  fetch(CLASS_API.replace(/\/$/,'') + '/filing', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({me:ME, name:NAME, ym:(DATA.month||{}).ym})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    busy('btnFile', false, label);
+    if(!d || !d.ok){ msg2('fMsg', d && d.error==='NO_LESSON' ? t('fNoLesson') : t('errNet')); return; }
+    refresh();
+  }).catch(function(){
+    busy('btnFile', false, label);
+    msg2('fMsg', t('errNet'));
+  });
+}
+
+function cancelFiling(){
+  msg2('fMsg','');
+  fetch(CLASS_API.replace(/\/$/,'') + '/filing', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({me:ME, name:NAME, ym:(DATA.month||{}).ym, cancel:true})
+  }).then(function(){
+    msg2('fMsg', t('fCancelled'), 'ok');
+    refresh();
+  }).catch(function(){ msg2('fMsg', t('errNet')); });
+}
+
+/* ================= 1365 신청 정보 ================= */
+function renderInfo(){
+  var info = (DATA && DATA.info) || {};
+  document.getElementById('birth').value = info.birth || '';
+  document.getElementById('portalId').value = info.portal_id || '';
+  /* 아직 안 넣으셨으면 눈에 띄게 + 펼쳐 둡니다 */
+  var need = !info.birth;
+  document.getElementById('infoNeed').classList.toggle('hidden', !need);
+  if(need) document.getElementById('dtInfo').open = true;
+}
+
+function saveInfo(){
+  var birth = document.getElementById('birth').value.replace(/\D/g,'');
+  var pid = document.getElementById('portalId').value.trim();
+  msg2('infoMsg','');
+  if(birth.length !== 8){ msg2('infoMsg', t('infoBad')); return; }
+
+  var label = t('infoBtn');
+  busy('btnInfo', true);
+  fetch(CLASS_API.replace(/\/$/,'') + '/teacher', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({me:ME, name:NAME, birth:birth, portal_id:pid})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    busy('btnInfo', false, label);
+    if(!d || !d.ok){ msg2('infoMsg', t('errNet')); return; }
+    msg2('infoMsg', t('infoOk'), 'ok');
+    refresh();
+  }).catch(function(){
+    busy('btnInfo', false, label);
+    msg2('infoMsg', t('errNet'));
+  });
+}
+
+function paintGrid(gridId, emptyId, rows, canDelete){
+  var box = document.getElementById(gridId);
+  if(!box) return;
+  document.getElementById(emptyId).classList.toggle('hidden', rows.length>0);
+  box.innerHTML = '';
+  rows.forEach(function(p){
+    var div = document.createElement('div');
+    div.className = 'ph';
+    var when = p.taken_at ? fmtStampShort(p.taken_at) : fmtDay(p.day);
+    var label = p.kind==='cert' ? t('kindCert') : p.kind==='profile' ? t('kindProfile') : when;
+    div.innerHTML =
+        '<img src="' + esc(photoUrl(p.rkey)) + '" alt="" loading="lazy" onclick="openBig(\'' + esc(p.rkey) + '\')">'
+      + '<div class="cap">' + esc(label) + (p.partner ? '<br>' + esc(p.partner) : '') + '</div>'
+      + '<div class="acts">'
+      +   '<a href="' + esc(photoUrl(p.rkey, true)) + '">' + t('phDown') + '</a>'
+      +   (canDelete ? '<button onclick="delPhoto(' + Number(p.id) + ')">' + t('phDel') + '</button>' : '')
+      + '</div>';
+    box.appendChild(div);
+  });
+}
+
+function openBig(rkey){
+  var lb = document.createElement('div');
+  lb.className = 'lightbox';
+  lb.innerHTML = '<img src="' + esc(photoUrl(rkey)) + '" alt="">'
+    + '<div class="row">'
+    +   '<a href="' + esc(photoUrl(rkey, true)) + '">' + t('phDown') + '</a>'
+    +   '<button type="button">' + t('phClose') + '</button>'
+    + '</div>';
+  lb.addEventListener('click', function(ev){
+    if(ev.target.tagName !== 'IMG' && ev.target.tagName !== 'A') lb.remove();
+  });
+  document.body.appendChild(lb);
+}
+
+/* 내 컴퓨터에서 올리기 */
+function pickFile(kind){
+  var inp = document.getElementById('fileIn');
+  inp.value = '';
+  inp.onchange = function(){
+    var f = inp.files && inp.files[0];
+    if(f) uploadFile(f, kind);
+  };
+  inp.click();
+}
+
+function uploadFile(file, kind){
+  msg2('phMsg','');
+  if(file.size > 6*1024*1024){ msg2('phMsg', t('phUpBig')); return; }
+  var fr = new FileReader();
+  fr.onload = function(){
+    fetch(CLASS_API.replace(/\/$/,'') + '/photo', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        me:ME, name:NAME, kind:kind, dataUrl:fr.result,
+        taken_at:new Date(file.lastModified || Date.now()).toISOString(),
+        caption:file.name.slice(0,120)
+      })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(!d || !d.ok){ msg2('phMsg', d && d.error==='TOO_BIG' ? t('phUpBig') : t('phUpFail')); return; }
+      msg2('phMsg', t('phUpOk'), 'ok');
+      refresh();
+    }).catch(function(){ msg2('phMsg', t('phUpFail')); });
+  };
+  fr.readAsDataURL(file);
+}
+
+function delPhoto(id){
+  if(!confirm(t('phDelAsk'))) return;
+  fetch(CLASS_API.replace(/\/$/,'') + '/photo/delete', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({me:ME, name:NAME, id:id})
+  }).then(function(){ refresh(); }).catch(function(){});
+}
+
+function refresh(){ if(ME && NAME) load(ME, NAME).catch(function(){}); }
+
+function fmtStampShort(iso){
+  var d = new Date(iso);
+  if(isNaN(d)) return '';
+  var p = function(n){ return String(n).padStart(2,'0'); };
+  return (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/* ================= 본부에 한마디 ================= */
+function setKind(k){
+  KIND = k;
+  document.getElementById('tabMsg').classList.toggle('on', k==='message');
+  document.getElementById('tabPause').classList.toggle('on', k==='pause');
+  document.getElementById('pauseBox').classList.toggle('hidden', k!=='pause');
+  msg2('noteMsg','');
+}
+
+/* 이 화면에는 성공 메시지도 있어서 종류를 받습니다 */
+function msg2(id, text, kind){
+  var el = document.getElementById(id);
+  el.className = 'msg ' + (kind||'err') + (text?' show':'');
+  el.textContent = text||'';
+}
+
+function sendNote(){
+  var body = document.getElementById('noteBody').value.trim();
+  var until = document.getElementById('until').value || '';
+  msg2('noteMsg','');
+  /* 쉼은 이유를 안 적어도 보낼 수 있게 합니다 — 쉬려는 분께 숙제를 주지 않습니다 */
+  if(KIND === 'message' && !body){ msg2('noteMsg', t('msgNeed')); return; }
+
+  /* 짝이 한 명이면 자동으로 그 짝에 대한 이야기로 붙입니다 */
+  var partner = '';
+  var names = {};
+  (DATA.rows||[]).forEach(function(r){ if(r.partner) names[r.partner] = 1; });
+  var uniq = Object.keys(names);
+  if(uniq.length === 1) partner = uniq[0];
+
+  var label = t('msgBtn');
+  busy('btnNote', true);
+  fetch(CLASS_API.replace(/\/$/,'') + '/note', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      me:ME, name:NAME, role:DATA.role||'teacher',
+      partner:partner, kind:KIND, body:body, until:until
+    })
+  }).then(function(r){ return r.json(); }).then(function(d){
+    busy('btnNote', false, label);
+    if(!d || !d.ok){ msg2('noteMsg', t('errNet')); return; }
+    document.getElementById('noteBody').value = '';
+    document.getElementById('until').value = '';
+    msg2('noteMsg', KIND==='pause' ? t('msgPauseOk') : t('msgOk'), 'ok');
+    setKind('message');
+    refresh();
+  }).catch(function(){
+    busy('btnNote', false, label);
+    msg2('noteMsg', t('errNet'));
+  });
+}
+
+function renderMyNotes(){
+  var box = document.getElementById('myNotes');
+  if(!box) return;
+  if(!NOTES.length){ box.innerHTML = ''; return; }
+  var h = '<div class="mynote"><b style="font-size:.92rem; color:var(--ink)">'+t('myNotesTitle')+'</b>';
+  NOTES.forEach(function(n){
+    var tag = n.kind==='pause' ? ' <span class="flag warn">'+t('kindPause')
+              + (n.until ? ' · ' + t('untilTxt').replace('{d}', fmtDay(n.until)) : '') + '</span>'
+            : n.kind==='resume' ? ' <span class="flag">'+t('kindResume')+'</span>' : '';
+    h += '<div class="row"><span class="when">'+fmtDay(n.day)+'</span>'
+       + esc(n.body||'') + tag
+       + ' <span class="flag' + (n.seen?'':' warn') + '">' + (n.seen?t('seenYes'):t('seenNo')) + '</span>'
+       + '</div>';
+  });
+  box.innerHTML = h + '</div>';
+}
+
+function logout(){
+  DATA = null; ME=''; NAME=''; NOTES=[]; PHOTOS=[];
+  try{ localStorage.removeItem('gks_name'); }catch(e){}
+  document.getElementById('name').value = '';
+  msg('inMsg',''); show('viewLogin');
+}
+
+/* ================= 시작 ================= */
+(function init(){
+  var l='ko';
+  try{
+    var stored = localStorage.getItem('gks_lang');
+    l = stored ? stored : (((navigator.language||'ko').slice(0,2)==='ko') ? 'ko' : 'en');
+  }catch(e){}
+  setLang(l==='en'?'en':'ko');
+
+  /* 포털에서 이미 번호를 넣으셨으면 그대로 이어 봅니다 */
+  var p='', n='';
+  try{
+    p = localStorage.getItem('gks_phone')||'';
+    n = localStorage.getItem('gks_name')||'';
+  }catch(e){}
+  if(p) document.getElementById('phone').value = p;
+  if(n) document.getElementById('name').value = n;
+  if(p && n && CLASS_API) load(p, n).catch(function(){});
+})();
+</script>
+</body>
+</html>
