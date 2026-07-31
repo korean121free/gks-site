@@ -8,6 +8,8 @@
 worker/secrets-temp.txt
 
 # 2단계 인증 백업 코드 등 — 폴더째 제외
+# GHM(good-ghm)과 같은 이름을 씁니다. 옛 이름 비밀금고/ 도 남겨둬 실수를 막습니다
+_internal/
 비밀금고/
 
 # wrangler 작업 찌꺼기
