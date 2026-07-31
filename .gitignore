@@ -7,6 +7,9 @@
 .dev.vars
 worker/secrets-temp.txt
 
+# 2단계 인증 백업 코드 등 — 폴더째 제외
+비밀금고/
+
 # wrangler 작업 찌꺼기
 .wrangler/
 node_modules/
