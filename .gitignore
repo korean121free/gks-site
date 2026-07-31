@@ -11,6 +11,10 @@ worker/secrets-temp.txt
 # GHM(good-ghm)과 같은 이름을 씁니다. 옛 이름 비밀금고/ 도 남겨둬 실수를 막습니다
 _internal/
 비밀금고/
+# 그 폴더를 압축한 것도 함께 제외 (_internal.7z 처럼 파일로 생깁니다)
+_internal.*
+비밀금고.*
+*.7z
 
 # wrangler 작업 찌꺼기
 .wrangler/
