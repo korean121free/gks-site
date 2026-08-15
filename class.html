@@ -399,6 +399,7 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
     <div class="tags">
       <div class="pill" id="pillNet"><span class="led"></span><span id="netTxt">연결 확인 중</span></div>
       <div class="pill" id="pillTime" style="display:none"><span id="timeTxt">00:00</span></div>
+      <div class="pill hidden" id="pillRec"><span>🔴</span><span data-i18n="recPill">녹음 중</span></div>
     </div>
 
     <div class="pip">
@@ -468,6 +469,22 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
       <div data-i18n="pwLead">학생이 괜찮다고 하면 사진이 저장됩니다.</div>
     </div>
 
+    <!-- 녹음: 학생에게 물어보는 창 (학생 화면에 뜹니다) — privacy.html 4항과 같은 내용 -->
+    <div class="banner hidden" id="bnrRecAsk">
+      <h3 data-i18n="raTitle">선생님이 수업 음성을 녹음하고 싶어 합니다</h3>
+      <div data-i18n="raLead">복습을 위한 녹음입니다. 음성만 저장되고 영상은 저장되지 않으며, 6개월 뒤 지워집니다. 괜찮으신가요?</div>
+      <div class="row">
+        <button onclick="recAnswer(true)" data-i18n="raYes">괜찮습니다</button>
+        <button class="ghost" onclick="recAnswer(false)" data-i18n="raNo">지금은 아니요</button>
+      </div>
+    </div>
+
+    <!-- 녹음: 선생님이 기다리는 동안 -->
+    <div class="banner hidden" id="bnrWaitRec">
+      <h3 data-i18n="rwTitle">학생에게 물어보는 중입니다</h3>
+      <div data-i18n="rwLead">학생이 괜찮다고 하면 녹음이 시작됩니다.</div>
+    </div>
+
     <!-- 사진: 찍은 것을 보고 고릅니다 (선생님 화면에만) -->
     <div class="pick hidden" id="pick">
       <div class="view">
@@ -523,6 +540,9 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
     </button>
     <button class="ctl hidden" id="cRec" onclick="toggleRec()">
       <span class="ico" id="cRecIco">⏺</span><span data-i18n="cRec">녹화</span>
+    </button>
+    <button class="ctl hidden" id="cRecA" onclick="askRecA()">
+      <span class="ico" id="cRecAIco">🔴</span><span data-i18n="cRecA">녹음</span>
     </button>
     <button class="ctl hidden" id="cPhoto" onclick="askPhoto()">
       <span class="ico">📸</span><span data-i18n="cPhoto">사진</span>
@@ -626,6 +646,20 @@ var I18N = {
   recOff:{ko:'녹화가 끝났습니다 · 파일이 내려받기 됩니다', en:'Recording stopped - the file is downloading'},
   recNoPeer:{ko:'학생이 들어온 뒤에 녹화할 수 있습니다', en:'You can record once the student has joined'},
   recFail:{ko:'이 브라우저에서는 녹화가 안 됩니다 · 크롬을 쓰세요', en:'Recording is not supported here - please use Chrome'},
+  cRecA:{ko:'녹음', en:'Rec audio'},
+  raTitle:{ko:'선생님이 수업 음성을 녹음하고 싶어 합니다', en:'Your teacher would like to record the class audio'},
+  raLead:{ko:'복습을 위한 녹음입니다. 음성만 저장되고 영상은 저장되지 않으며, 6개월 뒤 지워집니다. 괜찮으신가요?',
+          en:'It is for review. Only audio is stored — never video — and it is deleted after 6 months. Is that okay?'},
+  raYes:{ko:'괜찮습니다', en:'That’s fine'},
+  raNo:{ko:'지금은 아니요', en:'Not now'},
+  rwTitle:{ko:'학생에게 물어보는 중입니다', en:'Asking the student'},
+  rwLead:{ko:'학생이 괜찮다고 하면 녹음이 시작됩니다.', en:'Recording starts once the student agrees.'},
+  recPill:{ko:'녹음 중', en:'Recording'},
+  recAOn:{ko:'녹음을 시작했습니다', en:'Audio recording started'},
+  recANo:{ko:'학생이 지금은 녹음을 원하지 않습니다', en:'The student prefers not to record now'},
+  recASaving:{ko:'녹음을 저장하는 중…', en:'Saving the recording…'},
+  recASaved:{ko:'녹음을 저장했습니다 · 내 수업 기록에서 다시 들을 수 있습니다', en:'Recording saved - you can replay it in your page'},
+  recASaveFail:{ko:'녹음을 저장하지 못했습니다', en:'Could not save the recording'},
   popupBlocked:{ko:'새 창이 막혔습니다 · 주소창 오른쪽의 차단 표시를 눌러 허용해 주세요',
                 en:'Pop-up blocked - allow pop-ups from the address bar'},
   cAudio:{ko:'음성 우선', en:'Audio first'},
@@ -1056,6 +1090,9 @@ function paintWaiting(){
   /* 녹화도 선생님만, 학생이 들어온 뒤에만 */
   document.getElementById('cRec')
     .classList.toggle('hidden', !(ROLE === 'teacher' && hasRemote));
+  /* 녹음도 선생님만 — 기록(전화번호)이 있어야 저장할 곳이 있습니다 */
+  document.getElementById('cRecA')
+    .classList.toggle('hidden', !(ROLE === 'teacher' && hasRemote && ME));
 }
 
 /* ---------- 연결 품질 → 자동 음성 우선 ---------- */
@@ -1443,6 +1480,100 @@ function recCleanup(){
 }
 
 /* ==================================================================
+   녹음 — 학생 동의를 받고, 음성만 서버에 저장합니다.
+   privacy.html 4항 약속 그대로: 녹음할 때마다 다시 묻고, 음성만,
+   6개월 보관(지우는 일은 서버가 합니다). 화면에는 🔴 녹음 중 표시.
+   ================================================================== */
+var recA = null, recACtx = null, recAChunks = [], recAsking = false, recAStart = 0, recAMime = '';
+
+/* 선생님이 [녹음]을 누릅니다 → 켜져 있으면 끄고, 꺼져 있으면 학생에게 물어봅니다 */
+function askRecA(){
+  if(recA){ stopRecA(); return; }
+  if(recAsking) return;
+  if(typeof MediaRecorder === 'undefined'){ toast(t('recFail')); return; }
+  if(!document.getElementById('remoteBox').querySelector('video')){ toast(t('recNoPeer')); return; }
+  recAsking = true;
+  document.getElementById('bnrWaitRec').classList.remove('hidden');
+  sendData({t:'rec_ask'});
+  logEvent('reca_request');
+  /* 학생이 답을 안 하면 25초 뒤 스스로 접습니다 */
+  setTimeout(function(){
+    if(recAsking){
+      recAsking = false;
+      document.getElementById('bnrWaitRec').classList.add('hidden');
+    }
+  }, 25000);
+}
+
+/* 학생 쪽 — 허용/거절 */
+function recAnswer(yes){
+  document.getElementById('bnrRecAsk').classList.add('hidden');
+  sendData({t: yes ? 'rec_yes' : 'rec_no'});
+}
+
+function startRecA(){
+  var tracks = recAudioTracks();
+  if(!tracks.length){ toast(t('recFail')); return; }
+  try{
+    recACtx = new (window.AudioContext || window.webkitAudioContext)();
+    var dest = recACtx.createMediaStreamDestination();
+    tracks.forEach(function(tr){
+      try{ recACtx.createMediaStreamSource(new MediaStream([tr])).connect(dest); }catch(e){}
+    });
+    recAMime = ['audio/webm;codecs=opus','audio/webm','audio/mp4']
+      .filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0] || '';
+    recA = new MediaRecorder(dest.stream,
+      recAMime ? { mimeType:recAMime, audioBitsPerSecond:32000 } : { audioBitsPerSecond:32000 });
+  }catch(e){ toast(t('recFail')); recACleanup(); return; }
+
+  recAChunks = [];
+  recA.ondataavailable = function(e){ if(e.data && e.data.size) recAChunks.push(e.data); };
+  recA.onstop = recAUpload;
+  recA.start(1000);
+  recAStart = Date.now();
+  recDidRun = true;   /* 수업 기록의 '녹음' 표시와 같이 갑니다 */
+
+  document.getElementById('cRecA').classList.add('on');
+  document.getElementById('cRecAIco').textContent = '⏹';
+  document.getElementById('pillRec').classList.remove('hidden');
+  sendData({t:'rec_started'});   /* 학생 화면에도 🔴 녹음 중이 뜹니다 */
+  toast(t('recAOn'));
+  logEvent('reca_on');
+}
+
+function stopRecA(){
+  if(recA && recA.state !== 'inactive'){ try{ recA.stop(); }catch(e){} }
+  document.getElementById('cRecA').classList.remove('on');
+  document.getElementById('cRecAIco').textContent = '🔴';
+  document.getElementById('pillRec').classList.add('hidden');
+  sendData({t:'rec_stopped'});
+  logEvent('reca_off');
+}
+
+function recACleanup(){
+  if(recACtx){ try{ recACtx.close(); }catch(e){} recACtx = null; }
+  recA = null;
+}
+
+function recAUpload(){
+  var blob = new Blob(recAChunks, { type: recAMime || 'audio/webm' });
+  recAChunks = [];
+  var secs = Math.round((Date.now() - recAStart)/1000);
+  recACleanup();
+  if(blob.size < 2000 || !SID) return;
+  toast(t('recASaving'));
+  var fr = new FileReader();
+  fr.onload = function(){
+    var b64 = String(fr.result).split(',')[1] || '';
+    apiPost('/rec', { sid:SID, me:ME, mime:(blob.type||'audio/webm').split(';')[0], b64:b64, seconds:secs })
+      .then(function(r){
+        toast(r && r.ok ? t('recASaved') : t('recASaveFail'));
+      });
+  };
+  fr.readAsDataURL(blob);
+}
+
+/* ==================================================================
    채팅 — 단어·맞춤법을 글로 적어 주고, 파일을 주고받습니다.
    글자도 파일도 서버에 저장되지 않고 두 사람 사이로만 오갑니다.
    수업이 끝나면 사라지므로, 필요한 파일은 [받기]로 저장해 둡니다.
@@ -1620,6 +1751,23 @@ function onData(payload){
   /* 학생 화면에도 3·2·1 이 뜹니다 — 준비하고 웃을 수 있게 */
   if(d.t === 'photo_count' && ROLE !== 'teacher'){ runCount(null); }
   if(d.t === 'photo_saved' && ROLE !== 'teacher'){ toast(t('photoStu')); }
+  /* 녹음 */
+  if(d.t === 'rec_ask' && ROLE !== 'teacher'){
+    document.getElementById('bnrRecAsk').classList.remove('hidden');
+    logEvent('reca_asked');
+  }
+  if(d.t === 'rec_yes' && ROLE === 'teacher'){
+    document.getElementById('bnrWaitRec').classList.add('hidden');
+    if(recAsking){ recAsking = false; startRecA(); }
+  }
+  if(d.t === 'rec_no' && ROLE === 'teacher'){
+    document.getElementById('bnrWaitRec').classList.add('hidden');
+    recAsking = false;
+    toast(t('recANo'));
+    logEvent('reca_declined');
+  }
+  if(d.t === 'rec_started' && ROLE !== 'teacher'){ document.getElementById('pillRec').classList.remove('hidden'); }
+  if(d.t === 'rec_stopped' && ROLE !== 'teacher'){ document.getElementById('pillRec').classList.add('hidden'); }
   /* 채팅 */
   if(d.t === 'chat'){ chatTake(d); }
   /* 칠판 */
@@ -1914,6 +2062,7 @@ function goFallback(){
 /* ---------- 나가기 ---------- */
 function leaveRoom(){
   if(rec) stopRec();   /* 녹화 중이었으면 파일부터 건집니다 */
+  if(recA) stopRecA(); /* 녹음도 — 멈추면 스스로 서버에 저장됩니다 */
   lastMinutes = joinedAt ? Math.max(1, Math.round((Date.now()-joinedAt)/60000)) : 0;
   logEvent('left', lastMinutes);
   if(timeTimer){ clearInterval(timeTimer); timeTimer=null; }

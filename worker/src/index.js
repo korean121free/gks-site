@@ -8,6 +8,7 @@
  *   POST /session/end    수업 종료 기록 (분·재접속·진도 메모)
  *   POST /me             선생님 방 한 번에 불러오기 (기록·매칭표·메시지·사진)
  *   POST /note           본부에 한마디 / 휴식 신청
+ *   POST /rec            수업 녹음(음성만) 올리기 — 학생 동의 후. 6개월 지나면 자동 삭제
  *   POST /photo          사진 올리기 (R2가 켜져 있으면 R2, 아니면 D1)
  *   GET  /photo/get?k=   사진 보기·내려받기 (무작위 파일 이름이 열쇠)
  *   POST /photo/delete   내 사진 지우기
@@ -323,7 +324,7 @@ async function handleMe(request, env, origin) {
     ).bind(me, name, month + '%').first(),
 
     env.DB.prepare(
-      `SELECT id, day, role, partner, started_at, minutes, reconnects, recorded, memo
+      `SELECT id, day, role, partner, started_at, minutes, reconnects, recorded, rec_key, memo
          FROM session WHERE me = ? AND me_name = ?
         ORDER BY started_at DESC LIMIT 60`
     ).bind(me, name).all(),
@@ -671,6 +672,10 @@ const BLOB_CHUNK = 64000;
 const BLOB_PAGE = 6;
 
 function b64ToBytes(s) {
+  /* 큰 파일(녹음)도 빨리 풀리도록, 브라우저 내장 방식이 있으면 그걸 씁니다 */
+  if (typeof Uint8Array.fromBase64 === 'function') {
+    try { return Uint8Array.fromBase64(s); } catch (e) {}
+  }
   const bin = atob(s);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -722,6 +727,57 @@ function d1Stream(env, rkey) {
       if (r.results.length < BLOB_PAGE) controller.close();
     }
   });
+}
+
+/* ---------------- 수업 녹음 (음성만) ----------------
+ *
+ *   class.html이 학생 동의를 받은 뒤에만 보냅니다.
+ *   사진과 같은 창고(photo_blob 또는 R2)에 담고, 주소도 같은 /photo/get?k= 입니다.
+ *   privacy.html 4항 약속: 6개월 보관 — 지난 것은 새 녹음이 올라올 때 지웁니다.
+ */
+const REC_KEEP_DAYS = 183;   // 6개월
+
+async function handleRecAdd(request, env, origin) {
+  if (!isAllowed(env, origin) || !origin) return json({ error: 'FORBIDDEN' }, env, origin, 403);
+  if (!env.DB) return json({ error: 'NO_STORE' }, env, origin, 500);
+
+  let b;
+  try { b = await request.json(); } catch { return json({ error: 'BAD_JSON' }, env, origin, 400); }
+
+  const sid = parseInt(b.sid, 10) || 0;
+  const me = digits(b.me);
+  if (!sid || !me) return json({ error: 'NO_KEY' }, env, origin, 400);
+
+  // 자기 수업에만 붙일 수 있습니다
+  const ses = await env.DB.prepare(`SELECT id FROM session WHERE id = ? AND me = ?`).bind(sid, me).first();
+  if (!ses) return json({ error: 'NOT_FOUND' }, env, origin, 404);
+
+  const mime = ['audio/webm', 'audio/mp4', 'audio/ogg'].includes(b.mime) ? b.mime : 'audio/webm';
+  const ext = mime === 'audio/mp4' ? 'm4a' : mime === 'audio/ogg' ? 'ogg' : 'webm';
+  const b64 = String(b.b64 || '');
+  if (b64.length < 2000 || !/^[A-Za-z0-9+/=]+$/.test(b64.slice(0, 4000))) {
+    return json({ error: 'BAD_FILE' }, env, origin, 400);
+  }
+  if (b64.length > 32 * 1024 * 1024) return json({ error: 'TOO_BIG' }, env, origin, 400);  // ≈24MB — 50분 음성이면 넉넉
+
+  const bin = env.PHOTOS ? b64ToBytes(b64) : null;   // D1에는 b64 조각 그대로 담으므로 풀 필요가 없습니다
+  const rkey = randKey() + '.' + ext;
+  await storePut(env, rkey, mime, b64, bin);
+  await env.DB.prepare(`UPDATE session SET recorded = 1, rec_key = ? WHERE id = ?`).bind(rkey, sid).run();
+
+  // 약속 지키기 — 6개월 지난 녹음은 지웁니다 (한 번에 몇 개씩)
+  try {
+    const cut = addDays(kstDay(), -REC_KEEP_DAYS);
+    const old = await env.DB.prepare(
+      `SELECT id, rec_key FROM session WHERE rec_key IS NOT NULL AND day < ? LIMIT 8`
+    ).bind(cut).all();
+    for (const row of old.results) {
+      await storeDelete(env, row.rec_key);
+      await env.DB.prepare(`UPDATE session SET rec_key = NULL WHERE id = ?`).bind(row.id).run();
+    }
+  } catch (e) {}
+
+  return json({ ok: true, rkey, seconds: parseInt(b.seconds, 10) || 0 }, env, origin);
 }
 
 async function handlePhotoAdd(request, env, origin) {
@@ -812,7 +868,7 @@ async function handlePhotoAdd(request, env, origin) {
  */
 async function handlePhotoGet(url, env) {
   const k = String(url.searchParams.get('k') || '');
-  if (!/^[a-z0-9]{8,32}\.(jpg|jpeg|png|webp|hwp|hwpx|pdf|docx|xlsx)$/.test(k)) {
+  if (!/^[a-z0-9]{8,32}\.(jpg|jpeg|png|webp|hwp|hwpx|pdf|docx|xlsx|webm|m4a|ogg)$/.test(k)) {
     return new Response('bad key', { status: 400 });
   }
 
@@ -1219,6 +1275,9 @@ export default {
     }
     if (path === '/form1365' && request.method === 'GET') {
       return handleForm1365(url, env, origin);
+    }
+    if (path === '/rec' && request.method === 'POST') {
+      return handleRecAdd(request, env, origin);
     }
     if (path === '/photo' && request.method === 'POST') {
       return handlePhotoAdd(request, env, origin);

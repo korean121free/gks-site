@@ -749,6 +749,12 @@ function render(){
     if(!r.minutes) flags.push('<span class="flag warn">'+t('flagOpen')+'</span>');
     if(flags.length) h += '<div class="flags">' + flags.join('') + '</div>';
 
+    /* 녹음이 있으면 바로 다시 들을 수 있습니다 (6개월 보관 뒤 자동 삭제) */
+    if(r.rec_key){
+      h += '<div style="margin-top:7px"><audio controls preload="none" style="width:100%;height:32px" src="'
+         + CLASS_API.replace(/\/$/,'') + '/photo/get?k=' + encodeURIComponent(r.rec_key) + '"></audio></div>';
+    }
+
     li.innerHTML = h;
     ul.appendChild(li);
   });
