@@ -499,6 +499,8 @@ var I18N = {
            en:'No room specified. Please enter again from [My class].'},
   errToken:{ko:'수업방에 들어가지 못했습니다. 잠시 후 다시 눌러 주세요.',
             en:'Could not join the room. Please try again in a moment.'},
+  errPass:{ko:'입장 확인이 안 됐어요. <a href="portal.html">내 수업</a>에서 [수업 입장]으로 다시 들어와 주세요.',
+           en:'Entry could not be verified. Please enter again from <a href="portal.html">My Class</a>.'},
 
   waitBig:{ko:'상대방을 기다리고 있습니다', en:'Waiting for the other person'},
   waitSub:{ko:'들어오면 이 화면에 바로 보입니다.', en:'They will appear here as soon as they join.'},
@@ -611,6 +613,7 @@ var ROLE     = (Q.get('role')||'student').trim();
 var FALLBACK = (Q.get('fb')||'').trim();
 var ME       = (Q.get('me')||'').replace(/\D/g,'');   /* 전화번호 = 개인 방의 열쇠 */
 var PARTNER  = (Q.get('with')||'').trim();            /* 짝 이름 */
+var PASS     = (Q.get('pass')||'').trim();            /* 포털이 준 입장 확인표 */
 
 var room = null;              // LiveKit Room
 var preStream = null;         // 점검용 스트림
@@ -845,16 +848,18 @@ function joinRoom(){
   fetch(CLASS_API.replace(/\/$/,'') + '/token', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({room:ROOM, name:MYNAME, role:ROLE})
+    body: JSON.stringify({room:ROOM, name:MYNAME, role:ROLE, me:ME, pass:PASS})
   })
   .then(function(r){ return r.json(); })
   .then(function(d){
-    if(!d || !d.token) throw new Error('NO_TOKEN');
+    if(!d || !d.token){
+      throw new Error(d && (d.error==='NO_PASS' || d.error==='BAD_PASS') ? 'PASS' : 'NO_TOKEN');
+    }
     return connect(d.token);
   })
   .catch(function(e){
     busy('btnJoin', false, label);
-    msg('chkMsg', t('errToken'));
+    msg('chkMsg', t(e && e.message==='PASS' ? 'errPass' : 'errToken'));
     logEvent('join_fail', (e && e.message) || 'unknown');
   });
 }

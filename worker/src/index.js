@@ -2,6 +2,7 @@
  * GKS 수업방 백엔드 (Cloudflare Worker)
  *
  *   POST /token          수업방 입장 토큰 발급 (LiveKit JWT)
+ *                        — ENTRY_KEY 비밀값이 있으면 포털이 준 입장 확인표(pass)를 검사
  *   POST /log            끊김·품질 로그 적재 (D1)
  *   POST /session/start  수업 시작 기록
  *   POST /session/end    수업 종료 기록 (분·재접속·진도 메모)
@@ -108,6 +109,17 @@ async function mintToken(env, { room, identity, name }) {
   return data + '.' + b64url(sig);
 }
 
+/* HMAC-SHA256 → 16진수 문자열. GAS의 computeHmacSha256Signature와 같은 결과가 나옵니다. */
+async function hmacHex(secret, text) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(text));
+  return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 /* ---------------- 라우트 ---------------- */
 
 async function handleToken(request, env, origin) {
@@ -125,6 +137,19 @@ async function handleToken(request, env, origin) {
   const name = clean(body.name, 40) || '이름 없음';
   const role = body.role === 'teacher' ? 'teacher' : 'student';
   if (!room) return json({ error: 'NO_ROOM' }, env, origin, 400);
+
+  // 입장 권한 — ENTRY_KEY가 설정돼 있으면, 포털 로그인 때 GAS가 발급한
+  // 그날치 확인표(pass = HMAC(전화번호|KST날짜))가 맞아야 들어옵니다.
+  // ENTRY_KEY를 넣기 전까지는 지금처럼 열려 있습니다 (시험 단계용).
+  if (env.ENTRY_KEY) {
+    const me = digits(body.me);
+    const pass = clean(body.pass, 80);
+    if (!me || !pass) return json({ error: 'NO_PASS' }, env, origin, 403);
+    const today = kstDay(Date.now());
+    const ok = pass === await hmacHex(env.ENTRY_KEY, me + '|' + today)
+            || pass === await hmacHex(env.ENTRY_KEY, me + '|' + addDays(today, -1)); // 자정 넘김 대비
+    if (!ok) return json({ error: 'BAD_PASS' }, env, origin, 403);
+  }
 
   // 같은 사람이 두 탭으로 들어오면 먼저 것이 밀려나도록 identity를 고정합니다.
   const identity = (role + '-' + (name || 'x')).replace(/\s+/g, '_').slice(0, 60);
@@ -1164,7 +1189,8 @@ export default {
         configured: !!(env.LIVEKIT_API_KEY && env.LIVEKIT_API_SECRET),
         db: !!env.DB,
         photos: !!(env.PHOTOS || env.DB),
-        store: env.PHOTOS ? 'r2' : (env.DB ? 'd1' : 'none')   // 사진 알맹이를 어디에 두는지
+        store: env.PHOTOS ? 'r2' : (env.DB ? 'd1' : 'none'),  // 사진 알맹이를 어디에 두는지
+        entry: !!env.ENTRY_KEY                                // 입장 권한 검사가 켜져 있는지
       }, env, origin);
     }
     if (path === '/token' && request.method === 'POST') {

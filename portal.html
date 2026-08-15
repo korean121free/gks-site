@@ -310,6 +310,7 @@ var I18N = {
         en:'Global Korean Sharing · Free 1:1 Korean tutoring for international students in Korea'},
 
   enter:{ko:'수업 입장', en:'Enter class'},
+  fbNote:{ko:'연결이 안 되면 구글 미트로: ', en:'If it fails, use Google Meet: '},
   waitLink:{ko:'수업방을 준비하고 있습니다. 준비되면 여기에 [수업 입장] 버튼이 생깁니다.',
             en:'Your class room is being prepared. The [Enter class] button will appear here once it’s ready.'},
   helloT:{ko:'{n} 선생님', en:'{n}'},
@@ -522,7 +523,7 @@ function renderHome(){
     if(p.start) html += '<p class="muted" style="margin:.25rem 0 0">'+(LANG==='ko'?'시작 ':'since ')+esc(p.start)+'</p>';
     if(link){
       html += '<button class="btn" onclick="enterClass('+i+')">'+t('enter')+'</button>';
-      html += '<div class="linkbox"><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(link.replace(/^https?:\/\//,''))+'</a></div>';
+      html += '<div class="linkbox">'+t('fbNote')+'<a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(link.replace(/^https?:\/\//,''))+'</a></div>';
     } else {
       html += '<div class="note">'+t('waitLink')+'</div>';
     }
@@ -531,14 +532,30 @@ function renderHome(){
   });
 }
 
+/* 우리 수업방 주소 만들기 — 방 이름은 짝의 미트 코드에서 나옵니다 (두 사람이 같아짐) */
+function classUrl(p){
+  var link = p.meet || (ME.role==='teacher' ? ME.meet : '');
+  var m = /meet\.google\.com\/([a-z0-9\-]{6,})/i.exec(link||'');
+  if(!m) return '';
+  var q = 'room=gks-'+m[1].toLowerCase()
+        + '&name='+encodeURIComponent(ME.name||'')
+        + '&role='+(ME.role==='teacher'?'teacher':'student')
+        + '&me='+encodeURIComponent(PHONE||'')
+        + '&with='+encodeURIComponent(p.name||'')
+        + '&fb='+encodeURIComponent(link);
+  if(ME.pass) q += '&pass='+encodeURIComponent(ME.pass);   /* GAS가 준 입장 확인표 */
+  return 'class.html?'+q;
+}
+
 function enterClass(i){
   var p = (ME.partners||[])[i]; if(!p) return;
-  var link = p.meet || (ME.role==='teacher' ? ME.meet : '');
-  if(!link) return;
+  var meet = p.meet || (ME.role==='teacher' ? ME.meet : '');
+  var url = classUrl(p) || meet;   /* 우리 수업방이 우선, 안 되면 미트 */
+  if(!url) return;
   /* 먼저 연다 — 기록이 실패해도 수업은 시작되어야 하므로 */
-  window.open(link, '_blank', 'noopener');
+  window.open(url, '_blank', 'noopener');
   msg('homeMsg', t('enterOk'), 'ok');
-  api({action:'enter', phone:PHONE, partner:p.name, link:link}).catch(function(){});
+  api({action:'enter', phone:PHONE, partner:p.name, link:meet||url}).catch(function(){});
 }
 
 function markDone(){

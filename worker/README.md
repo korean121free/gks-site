@@ -376,8 +376,25 @@ $env:CLOUDFLARE_API_TOKEN="붙여넣기"; npx wrangler deploy
 
 - **녹음** — 결정됨: 선생님이 `[녹음]`을 누르면 **학생 화면에 매번 허용/거절이 뜨고**, 거절하면 녹음하지 않습니다. 브라우저가 음성만 녹음(50분 ≈ 12MB) → R2 저장 → 개인 방에서 다시 듣기. `session.recorded` / `rec_key` 칸은 미리 만들어 두었으므로 표를 고칠 일은 없습니다
   → 방침은 미리 써 두었습니다 — [privacy.html](../privacy.html) 4항에 **녹음할 때마다 학생에게 다시 묻고, 음성만, 6개월 보관** 으로 적혀 있습니다. 만들 때 이 내용과 어긋나지 않게 하시면 됩니다
-- **입장 권한** — 지금은 방 이름을 아는 사람이면 들어옵니다. 시험 단계(선생님 2~3명)에서는 괜찮지만 **정식 운영 전에 반드시** `portal.html` 로그인(GAS)과 연결해야 합니다. 개인 방도 지금은 전화번호+이름만으로 열립니다
-- **portal.html 연결** — `[수업 입장]` 버튼이 `class.html?room=...&me=...&with=...` 로 가게 바꾸면 됩니다. 현재 운영 중인 화면이라 시험이 끝난 뒤에 바꿉니다
+- **입장 권한 — 코드는 다 됨. 스위치(ENTRY_KEY)만 켜면 됩니다** (2026-08-15)
+  - 지금은 예전처럼 열려 있습니다(시험 단계용). ENTRY_KEY를 넣는 순간부터 포털을 거치지 않은 사람은 못 들어옵니다
+  - 켜는 절차 — 아래 3개를 **같은 값**으로 맞추면 끝:
+    1. 비밀값 하나 정하기 (긴 무작위 문자열, 예: `gks-entry-` 뒤에 아무 글자 20개)
+    2. **수업 서버에 넣기**: `worker\wr.bat secret put ENTRY_KEY` → 값 붙여넣기 → `worker\wr.bat deploy`
+    3. **포털 GAS에 넣기**: script.google.com → 포털 프로젝트 → ⚙️ 프로젝트 설정 → 스크립트 속성 → `ENTRY_KEY` 이름으로 같은 값 저장. 그리고 코드에 아래 함수를 추가하고, `login`과 `claim` 응답에서 `me`를 만드는 곳에 `me.pass = entryPass_(phone);` 한 줄을 넣은 뒤 **새 버전으로 다시 배포**
+    ```js
+    function entryPass_(phone){
+      var secret = PropertiesService.getScriptProperties().getProperty('ENTRY_KEY');
+      if(!secret) return '';
+      var day = Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd');
+      var msg = String(phone||'').replace(/\D/g,'') + '|' + day;
+      var sig = Utilities.computeHmacSha256Signature(msg, secret);
+      return sig.map(function(b){ b=(b+256)%256; var s=b.toString(16); return s.length<2?'0'+s:s; }).join('');
+    }
+    ```
+    확인: `/health` 에 `entry:true` 가 나오고, 포털에서 [수업 입장]으로는 들어가지는데 class.html 주소만 직접 치면 "입장 확인이 안 됐어요"가 나오면 성공
+  - 개인 방(my.html)은 여전히 전화번호+이름만으로 열립니다 — 다음 숙제
+- ~~**portal.html 연결**~~ — **끝났습니다** (2026-08-15). [수업 입장]이 `class.html?room=gks-<미트코드>&name=…&role=…&me=…&with=…&fb=<미트주소>&pass=…` 로 갑니다. 방 이름이 미트 코드에서 나오므로 짝 두 사람이 자동으로 같은 방이 되고, 연결이 안 되면 미트로 넘어갑니다
 - **채팅 + 파일 전송** — 한국어 수업에는 거의 필수입니다 (단어·맞춤법을 글로 적어 줘야 함)
 - **판서(화이트보드)** — 받아쓰기, 획순
 - 말한 시간 비율, 어휘 카드, 수업자료 라이브러리 — 표준 커리큘럼이 정해진 뒤

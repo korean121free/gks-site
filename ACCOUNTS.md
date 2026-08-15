@@ -76,6 +76,7 @@ Cloudflare에 암호화되어 저장됩니다. 확인용 명령: `worker\wr.bat 
 | `LIVEKIT_API_KEY` | LiveKit → Settings → Keys |
 | `LIVEKIT_API_SECRET` | 같은 화면 (만들 때 한 번만 보임) |
 | `ADMIN_KEY` | 관리 화면(admin.html) 비밀번호 — 직접 정함 |
+| `ENTRY_KEY` | 수업방 입장 확인용 — **포털 GAS의 스크립트 속성에도 같은 값** (worker/README.md "입장 권한" 참고). 아직 안 넣었으면 입장 검사 꺼진 상태 |
 
 넣는 법:
 
