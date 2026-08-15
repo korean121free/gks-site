@@ -1,7 +1,7 @@
 # GKS 계정 지도
 
 > 후임자가 첫날 이 문서만 읽으면 됩니다.
-> 최종 수정 2026-07-31
+> 최종 수정 2026-08-15
 
 ## 원칙
 
@@ -25,8 +25,17 @@
 | ssyhsarahkim-tech (GitHub) | **GHM 전용** — GitHub Desktop이 이 계정으로 로그인돼 있음 |
 | ssyhsarahkim@gmail.com (Cloudflare) | **GHM 전용** — ghm.co.kr 등 프로젝트 6개 |
 
-- GitHub Desktop에서 gks-site를 Push하면 "Fork this repository?" 창이 뜹니다 → **반드시 Cancel.** GKS는 클로드 데스크톱 앱 터미널에서만 push
+- **위 두 줄은 데스크톱 이야기입니다.** 데스크톱의 GitHub Desktop은 GHM 계정이라, 거기서 gks-site를 Push하면 "Fork this repository?" 창이 뜹니다 → **반드시 Cancel.** 데스크톱에서 GKS는 클로드 데스크톱 앱 터미널에서만 push
 - Cloudflare 대시보드 북마크는 **GHM 계정 주소**입니다. GKS는 주소를 직접 입력해서 들어가세요
+
+### 컴퓨터 2대 — 어느 컴퓨터에서 무엇으로 푸시하나 (2026-08-15 확인)
+
+| 컴퓨터 | GitHub Desktop 로그인 | gks-site 커밋·푸시 |
+|---|---|---|
+| 데스크톱 (기존 PC) | ssyhsarahkim-tech (**GHM 전용**) | ❌ GitHub Desktop 금지 — Fork 창 뜨면 Cancel. 터미널(gh CLI)로만 |
+| **노트북 (LG 그램)** | **korean121free (GKS 전용)** | ✅ **GitHub Desktop으로 바로 가능** — Commit to main → Push origin |
+
+노트북은 GKS 전용으로 쓰고, GHM 작업은 노트북에서 하지 않습니다. 두 단체가 컴퓨터 단위로 분리되어 계정이 섞일 일이 없습니다.
 
 ## 인증 방식
 

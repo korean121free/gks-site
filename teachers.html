@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>선생님 소개 | 글로벌한국어나눔</title>
+<meta name="description" content="글로벌한국어나눔의 한국어 선생님들을 소개합니다. 마음에 드는 선생님을 골라 희망 선생님으로 신청할 수 있습니다.">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="icon" href="favicon-192.png" sizes="192x192">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#2e4d8f; --blue:#4472C4; --blue-soft:#eef3fa; --blue-line:#d5e0f0;
+  --orange:#ED7D31; --orange-deep:#d96a1f;
+  --body:#3d5680; --muted:#7288ab; --paper:#f8fafd; --white:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Noto Sans KR',sans-serif;color:var(--body);
+  background:var(--paper);line-height:1.75;word-break:keep-all;
+}
+img{max-width:100%;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px;border-radius:4px;}
+
+/* ── 헤더 (index.html과 동일) ─────────────── */
+header{
+  position:sticky;top:0;z-index:50;
+  background:rgba(248,250,253,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--blue-line);
+}
+.nav{
+  max-width:1080px;margin:0 auto;padding:14px 24px;
+  display:flex;align-items:center;gap:24px;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-logo{height:34px;width:auto;display:block;border-radius:8px;}
+.brand-name{font-weight:900;color:var(--navy);font-size:1.02rem;letter-spacing:1px;}
+nav.menu{margin-left:auto;display:flex;align-items:center;gap:22px;font-size:.92rem;font-weight:500;}
+nav.menu a{color:var(--body);padding:4px 2px;}
+nav.menu a:hover{color:var(--navy);}
+nav.menu a.here{color:var(--navy);font-weight:700;border-bottom:2px solid var(--orange);}
+.nav-portal{
+  background:var(--navy);color:#fff!important;font-weight:700;
+  padding:8px 18px!important;border-radius:999px;font-size:.88rem;
+}
+.nav-portal:hover{background:var(--blue);}
+.lang-group{
+  display:flex;border:1px solid var(--blue-line);border-radius:999px;
+  overflow:hidden;background:#fff;
+}
+.lang-btn{padding:4px 10px;font-size:.72rem;font-weight:700;color:var(--muted);background:#fff;}
+.lang-btn.on{background:#dbe7f8;color:var(--navy);}
+.lang-btn:not(.on):hover{color:var(--navy);}
+@media(max-width:760px){
+  .nav{flex-wrap:wrap;row-gap:10px;padding:12px 16px;}
+  .lang-group{margin-left:auto;}
+  nav.menu{order:3;width:100%;margin-left:0;justify-content:center;gap:14px;flex-wrap:wrap;font-size:.85rem;}
+  .nav-portal{padding:6px 14px!important;}
+}
+
+/* ── 페이지 머리 ───────────────────────── */
+.pagehead{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#f8fafd 0%,#eef3fa 55%,#e2ebf7 100%);
+  padding:72px 24px 56px;text-align:center;
+}
+.pagehead .deco{
+  position:absolute;font-weight:900;color:var(--blue);opacity:.05;
+  line-height:1;user-select:none;pointer-events:none;
+  font-size:20rem;right:-50px;top:-70px;
+}
+.pagehead h1{
+  font-size:clamp(1.7rem,5vw,2.6rem);font-weight:900;color:var(--navy);line-height:1.25;
+}
+.pagehead h1 .accent{color:var(--orange);}
+.pagehead .lead{
+  font-family:'Gowun Batang',serif;font-weight:700;
+  margin:16px auto 0;max-width:640px;font-size:clamp(.98rem,2.6vw,1.12rem);
+}
+.pagehead .sub{margin:10px auto 0;max-width:640px;font-size:.9rem;color:var(--muted);}
+
+/* ── 예시 알림 띠 ─────────────────────── */
+.samplebar{
+  background:#fff7ef;border-bottom:1px solid #f3ddc8;color:#9a5b23;
+  text-align:center;font-size:.85rem;padding:9px 16px;font-weight:500;
+}
+
+/* ── 필터 ─────────────────────────────── */
+.filters{max-width:1080px;margin:0 auto;padding:34px 24px 0;}
+.f-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.f-label{
+  flex:none;font-size:.8rem;font-weight:700;color:var(--muted);
+  letter-spacing:1px;padding:7px 0;min-width:64px;
+}
+.f-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.fchip{
+  background:#fff;border:1px solid var(--blue-line);border-radius:999px;
+  padding:6px 15px;font-size:.85rem;font-weight:500;color:var(--body);
+  transition:all .12s;
+}
+.fchip:hover{border-color:var(--blue);color:var(--navy);}
+.fchip.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700;}
+.f-count{max-width:1080px;margin:6px auto 0;padding:0 24px;font-size:.85rem;color:var(--muted);}
+
+/* ── 선생님 카드 ──────────────────────── */
+.grid-wrap{max-width:1080px;margin:0 auto;padding:22px 24px 80px;}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media(max-width:980px){.tgrid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){.tgrid{grid-template-columns:1fr;}}
+.tcard{
+  background:#fff;border:1px solid var(--blue-line);border-radius:18px;
+  padding:26px 24px;display:flex;flex-direction:column;
+  transition:transform .15s,box-shadow .15s;
+}
+.tcard:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(46,77,143,.10);}
+.t-top{display:flex;align-items:center;gap:14px;}
+.t-face{
+  width:60px;height:60px;border-radius:50%;flex:none;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:900;font-size:1.35rem;
+  font-family:'Gowun Batang',serif;
+}
+.t-face img{width:100%;height:100%;object-fit:cover;display:block;}
+.t-name{font-size:1.12rem;font-weight:900;color:var(--navy);line-height:1.3;}
+.t-years{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.t-badges{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;}
+.t-badge{
+  font-size:.72rem;font-weight:700;color:var(--navy);
+  background:var(--blue-soft);border:1px solid var(--blue-line);
+  border-radius:999px;padding:3px 10px;
+}
+.t-quote{
+  font-family:'Gowun Batang',serif;font-weight:700;
+  margin-top:14px;font-size:.95rem;color:var(--body);line-height:1.6;
+}
+.t-intro{margin-top:10px;font-size:.88rem;flex:1;}
+.t-tags{margin-top:14px;display:flex;gap:6px;flex-wrap:wrap;}
+.t-tag{
+  font-size:.75rem;font-weight:500;color:var(--body);
+  background:var(--paper);border:1px solid var(--blue-line);
+  border-radius:999px;padding:3px 10px;
+}
+.t-time{
+  margin-top:14px;font-size:.82rem;color:var(--muted);
+  display:flex;align-items:center;gap:6px;
+}
+.t-time .clock{color:var(--orange);font-weight:700;}
+.t-btn{
+  margin-top:16px;display:block;text-align:center;
+  background:var(--orange);color:#fff;font-weight:700;font-size:.95rem;
+  padding:12px 0;border-radius:999px;width:100%;
+  box-shadow:0 5px 14px rgba(237,125,49,.28);
+  transition:transform .15s,background .15s;
+}
+.t-btn:hover{background:var(--orange-deep);transform:translateY(-2px);}
+.empty{
+  grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted);
+  font-size:.95rem;
+}
+
+/* ── 안내 섹션 ────────────────────────── */
+.notice{background:var(--blue-soft);padding:64px 24px;}
+.notice .wrap{max-width:1080px;margin:0 auto;}
+.jamo-head{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.jamo{
+  width:52px;height:52px;border-radius:14px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:1.5rem;color:#fff;background:var(--orange);
+}
+.sec-eyebrow{font-size:.78rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;font-weight:700;}
+.sec-title{font-size:clamp(1.3rem,3.6vw,1.7rem);font-weight:900;color:var(--navy);line-height:1.3;}
+.n-grid{margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:820px){.n-grid{grid-template-columns:1fr;}}
+.n-card{background:#fff;border:1px solid var(--blue-line);border-radius:18px;padding:24px 22px;}
+.n-card h3{font-size:.98rem;color:var(--navy);font-weight:700;margin-bottom:6px;}
+.n-card p{font-size:.88rem;}
+
+/* ── 신청 모달 ────────────────────────── */
+.modal-bg{
+  display:none;position:fixed;inset:0;background:rgba(30,45,80,.45);
+  z-index:100;align-items:center;justify-content:center;padding:20px;
+}
+.modal{
+  background:#fff;border-radius:20px;max-width:420px;width:100%;
+  padding:32px 28px;text-align:center;
+}
+.modal h2{font-size:1.2rem;font-weight:900;color:var(--navy);line-height:1.4;}
+.modal .m-name{
+  margin:18px auto;font-family:'Gowun Batang',serif;font-weight:700;
+  font-size:1.3rem;color:var(--orange-deep);
+  background:#fff7ef;border:1px dashed var(--orange);border-radius:14px;
+  padding:14px 10px;
+}
+.modal p{font-size:.88rem;color:var(--body);}
+.modal .m-note{font-size:.8rem;color:var(--muted);margin-top:10px;}
+.m-btns{margin-top:20px;display:flex;flex-direction:column;gap:10px;}
+.m-go{
+  display:block;background:var(--orange);color:#fff;font-weight:700;
+  padding:13px 0;border-radius:999px;font-size:.98rem;
+}
+.m-go:hover{background:var(--orange-deep);}
+.m-close{font-size:.85rem;color:var(--muted);padding:6px;}
+.m-close:hover{color:var(--navy);}
+
+/* ── 푸터 ─────────────────────────────── */
+footer{background:var(--navy);color:#c9d6ee;padding:44px 24px;text-align:center;font-size:.85rem;}
+footer .ft-brand{font-weight:900;color:#fff;font-size:1rem;letter-spacing:1px;}
+footer p{margin-top:8px;}
+footer a{color:#fff;text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+  선생님 명단 수정 방법 (후임자용 안내)
+
+  1. 아래 <script> 안의 TEACHERS 목록에서 한 명 = 중괄호 { } 한 덩어리입니다.
+  2. 새 선생님을 넣으려면 덩어리 하나를 복사해 쉼표(,)로 이어 붙이고
+     이름·소개·시간만 바꾸면 됩니다.
+  3. 사진을 넣으려면 photo:'' 안에 사진 주소를 넣습니다. 비우면
+     이름 첫 글자가 든 동그라미가 대신 나옵니다.
+  4. 실제 선생님 정보로 다 바꾼 뒤에는 맨 위 SAMPLE 값을 false로
+     바꿔야 "예시 화면" 안내 띠가 사라집니다.
+═══════════════════════════════════════════════════════════════ -->
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="brand" aria-label="글로벌한국어나눔 홈">
+      <img class="brand-logo" src="favicon-192.png" alt="">
+      <span class="brand-name">글로벌한국어나눔</span>
+    </a>
+    <nav class="menu" aria-label="주 메뉴">
+      <a href="index.html#about" data-i18n="m_about">소개</a>
+      <a href="index.html#how" data-i18n="m_how">진행 방법</a>
+      <a class="here" href="teachers.html" data-i18n="m_tpage">선생님 소개</a>
+      <a href="index.html#students" data-i18n="m_students">학생 신청</a>
+      <a class="nav-portal" href="index.html#portal" data-i18n="m_portal">내 수업</a>
+    </nav>
+    <div class="lang-group" role="group" aria-label="Language">
+      <button class="lang-btn on" id="langKo" onclick="setLang('ko')">한국어</button>
+      <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</header>
+
+<div class="samplebar" id="samplebar" data-i18n="sample_bar">
+  지금 보이는 선생님은 화면 구성을 보여드리기 위한 예시입니다.
+</div>
+
+<div class="pagehead">
+  <div class="deco" aria-hidden="true">님</div>
+  <h1 data-i18n="ph_title">우리 <span class="accent">선생님</span>들을 소개합니다</h1>
+  <p class="lead" data-i18n="ph_lead">
+    한 분 한 분이 매주 50분, 한 사람의 유학생을 꾸준히 만나는 자원봉사 선생님입니다.
+  </p>
+  <p class="sub" data-i18n="ph_sub">
+    마음에 드는 선생님이 있다면 신청서에 이름을 적어 주세요.
+    수준과 시간을 함께 살펴 본부가 최종 매칭해 드립니다.
+  </p>
+</div>
+
+<div class="filters" id="filters">
+  <div class="f-row">
+    <div class="f-label" data-i18n="f_field">분야</div>
+    <div class="f-chips" id="tagChips"></div>
+  </div>
+  <div class="f-row">
+    <div class="f-label" data-i18n="f_time">시간대</div>
+    <div class="f-chips" id="slotChips"></div>
+  </div>
+</div>
+<div class="f-count" id="countLine"></div>
+
+<div class="grid-wrap">
+  <div class="tgrid" id="grid"></div>
+</div>
+
+<section class="notice">
+  <div class="wrap">
+    <div class="jamo-head">
+      <div class="jamo" aria-hidden="true">ㅁ</div>
+      <div>
+        <div class="sec-eyebrow">How matching works</div>
+        <h2 class="sec-title" data-i18n="n_title">희망 선생님, 이렇게 연결됩니다</h2>
+      </div>
+    </div>
+    <div class="n-grid">
+      <div class="n-card">
+        <h3 data-i18n="n_1t">1. 신청서에 이름 쓰기</h3>
+        <p data-i18n="n_1p">학생 신청서의 '희망 선생님' 칸에 선생님 이름을 적습니다. 카드의 주황 버튼을 누르면 안내해 드립니다.</p>
+      </div>
+      <div class="n-card">
+        <h3 data-i18n="n_2t">2. 레벨 테스트</h3>
+        <p data-i18n="n_2p">15분 레벨 테스트로 지금의 한국어 수준을 확인합니다. 희망 선생님과 잘 맞는지 보기 위해서입니다.</p>
+      </div>
+      <div class="n-card">
+        <h3 data-i18n="n_3t">3. 본부가 최종 확정</h3>
+        <p data-i18n="n_3p">수준과 시간이 맞으면 희망 선생님과 연결됩니다. 시간이 맞지 않으면 가장 비슷한 선생님을 추천해 드립니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="ft-brand">글로벌한국어나눔 · Global Korean Sharing</div>
+  <p data-i18n="ft_desc">한국에 온 유학생을 위한 무료 온라인 1:1 한국어 튜터링</p>
+  <p data-i18n="ft_contact">문의 — <a href="mailto:korean121free@gmail.com">korean121free@gmail.com</a></p>
+</footer>
+
+<!-- 신청 안내 모달 -->
+<div class="modal-bg" id="applyModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2 data-i18n="md_title">신청서에 이렇게 적어 주세요</h2>
+    <div class="m-name" id="mName">—</div>
+    <p data-i18n="md_body">신청서의 <b>'희망 선생님'</b> 칸에 위 이름을 그대로 적으시면 됩니다.</p>
+    <p class="m-note" data-i18n="md_note">시간이 맞지 않으면 비슷한 선생님을 추천해 드려요.</p>
+    <div class="m-btns">
+      <a class="m-go" id="mGo" href="#" target="_blank" rel="noopener" data-i18n="md_go">신청서 작성하러 가기</a>
+      <button class="m-close" onclick="closeApply()" data-i18n="md_close">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   ① 학생 신청서 주소 — index.html의 '지금 신청하기'와 같은 폼
+═══════════════════════════════════════════════════════ */
+var APPLY_FORM = 'https://forms.gle/CELcTNxo2S78kv7P6';
+
+/* ═══════════════════════════════════════════════════════
+   ② 예시 화면 여부 — 실제 선생님 정보를 다 넣은 뒤 false로!
+═══════════════════════════════════════════════════════ */
+var SAMPLE = true;
+
+/* ═══════════════════════════════════════════════════════
+   ③ 분야·시간대 이름표 (여기 있는 것만 카드에서 쓸 수 있음)
+═══════════════════════════════════════════════════════ */
+var TAGS = {
+  basics:{ko:'기초 한글',   en:'Hangul basics'},
+  pron:  {ko:'발음 교정',   en:'Pronunciation'},
+  campus:{ko:'대학 생활 회화',en:'Campus life'},
+  life:  {ko:'생활 한국어', en:'Everyday Korean'},
+  topik: {ko:'TOPIK·시험',  en:'TOPIK / exams'},
+  job:   {ko:'취업·면접',   en:'Jobs & interviews'}
+};
+var SLOTS = {
+  day: {ko:'평일 낮',   en:'Weekday day'},
+  eve: {ko:'평일 저녁', en:'Weekday evening'},
+  wend:{ko:'주말',      en:'Weekend'}
+};
+
+/* ═══════════════════════════════════════════════════════
+   ④ 선생님 명단 — 한 명 = { } 한 덩어리
+      · photo: 사진 주소 (비우면 이름 동그라미)
+      · tags:  위 ③의 이름 중에서 골라 적기
+      · slots: day / eve / wend 중에서
+═══════════════════════════════════════════════════════ */
+var TEACHERS = [
+  {
+    name:{ko:'김선영 선생님', en:'Ms. Kim Sun-young'},
+    init:'선', color:'#4472C4', photo:'',
+    years:{ko:'2020년부터 함께', en:'Since 2020'},
+    badges:{ko:['온보딩 수료','5년째 섬김'], en:['Trained','5th year']},
+    quote:{ko:'"발음이 바뀌면 자신감이 바뀝니다."', en:'"When your pronunciation changes, your confidence changes."'},
+    intro:{ko:'대학 새내기 유학생을 많이 만났습니다. 천천히, 그러나 꾸준히 가는 수업을 좋아합니다.',
+           en:'I have taught many first-year international students. I love lessons that go slowly but steadily.'},
+    tags:['pron','campus'], slots:['eve','wend'],
+    time:{ko:'평일 저녁 · 주말 오전', en:'Weekday evenings · weekend mornings'}
+  },
+  {
+    name:{ko:'박정민 선생님', en:'Mr. Park Jung-min'},
+    init:'정', color:'#ED7D31', photo:'',
+    years:{ko:'2022년부터 함께', en:'Since 2022'},
+    badges:{ko:['온보딩 수료','한국어교원 자격'], en:['Trained','Certified Korean teacher']},
+    quote:{ko:'"시험 한국어도 결국 사람의 말입니다."', en:'"Even exam Korean is, in the end, human language."'},
+    intro:{ko:'TOPIK을 준비하는 학생들과 목표 급수를 함께 계획하고, 매주 점검하며 갑니다.',
+           en:'I plan target TOPIK levels together with my students and check progress every week.'},
+    tags:['topik','job'], slots:['eve'],
+    time:{ko:'평일 저녁', en:'Weekday evenings'}
+  },
+  {
+    name:{ko:'이하은 선생님', en:'Ms. Lee Ha-eun'},
+    init:'하', color:'#2e4d8f', photo:'',
+    years:{ko:'2021년부터 함께', en:'Since 2021'},
+    badges:{ko:['온보딩 수료'], en:['Trained']},
+    quote:{ko:'"ㄱㄴㄷ부터 함께라면 무섭지 않아요."', en:'"Starting from ㄱㄴㄷ is not scary when we do it together."'},
+    intro:{ko:'한글을 처음 배우는 학생을 가장 반깁니다. 받아쓰기와 그림 카드로 즐겁게 시작합니다.',
+           en:'Absolute beginners are most welcome. We start joyfully with dictation and picture cards.'},
+    tags:['basics','life'], slots:['day','wend'],
+    time:{ko:'평일 낮 · 주말', en:'Weekday daytime · weekends'}
+  },
+  {
+    name:{ko:'최유진 선생님', en:'Ms. Choi Yu-jin'},
+    init:'유', color:'#5a8f2e', photo:'',
+    years:{ko:'2023년부터 함께', en:'Since 2023'},
+    badges:{ko:['온보딩 수료'], en:['Trained']},
+    quote:{ko:'"병원 예약 전화, 같이 연습해 봐요."', en:'"Let\'s practice that clinic phone call together."'},
+    intro:{ko:'교과서 밖 진짜 생활 한국어를 다룹니다. 아르바이트 면접, 은행, 문자 예절까지.',
+           en:'Real everyday Korean beyond the textbook — part-time job interviews, the bank, texting etiquette.'},
+    tags:['life','campus'], slots:['day'],
+    time:{ko:'평일 오전·오후', en:'Weekday mornings & afternoons'}
+  },
+  {
+    name:{ko:'정소망 선생님', en:'Ms. Jung So-mang'},
+    init:'소', color:'#8f2e6b', photo:'',
+    years:{ko:'2020년부터 함께', en:'Since 2020'},
+    badges:{ko:['온보딩 수료','5년째 섬김'], en:['Trained','5th year']},
+    quote:{ko:'"말문이 트이는 순간을 함께 기다립니다."', en:'"I wait together with you for the moment words begin to flow."'},
+    intro:{ko:'조용한 학생, 말하기가 두려운 학생과 잘 맞습니다. 편안한 대화로 수업을 엽니다.',
+           en:'A good match for quiet students who fear speaking. Every lesson opens with a comfortable chat.'},
+    tags:['campus','pron'], slots:['wend'],
+    time:{ko:'주말 오후', en:'Weekend afternoons'}
+  },
+  {
+    name:{ko:'한믿음 선생님', en:'Mr. Han Mid-eum'},
+    init:'믿', color:'#2e7d8f', photo:'',
+    years:{ko:'2024년부터 함께', en:'Since 2024'},
+    badges:{ko:['온보딩 수료'], en:['Trained']},
+    quote:{ko:'"취업 서류의 한 줄도 함께 다듬습니다."', en:'"We polish even a single line of your job application together."'},
+    intro:{ko:'회사 생활 경험을 살려 자기소개서, 면접 말하기, 직장 한국어를 돕습니다.',
+           en:'Drawing on my office experience, I help with cover letters, interview speaking, and workplace Korean.'},
+    tags:['job','topik'], slots:['eve','wend'],
+    time:{ko:'평일 저녁 · 주말', en:'Weekday evenings · weekends'}
+  }
+];
+
+/* ───── 이 아래는 화면을 그리는 코드 — 고칠 일이 거의 없습니다 ───── */
+var LANG='ko', curTag='all', curSlot='all';
+
+var I18N = {
+  m_about:{ko:'소개',en:'About'},
+  m_how:{ko:'진행 방법',en:'How it works'},
+  m_tpage:{ko:'선생님 소개',en:'Our teachers'},
+  m_students:{ko:'학생 신청',en:'For students'},
+  m_portal:{ko:'내 수업',en:'My Class'},
+  sample_bar:{ko:'지금 보이는 선생님은 화면 구성을 보여드리기 위한 예시입니다.',
+              en:'The teachers shown here are sample profiles for preview purposes.'},
+  ph_title:{ko:'우리 <span class="accent">선생님</span>들을 소개합니다',
+            en:'Meet our <span class="accent">teachers</span>'},
+  ph_lead:{ko:'한 분 한 분이 매주 50분, 한 사람의 유학생을 꾸준히 만나는 자원봉사 선생님입니다.',
+           en:'Each one is a volunteer teacher who faithfully meets one international student, 50 minutes every week.'},
+  ph_sub:{ko:'마음에 드는 선생님이 있다면 신청서에 이름을 적어 주세요. 수준과 시간을 함께 살펴 본부가 최종 매칭해 드립니다.',
+          en:'If a teacher feels right for you, write their name on your application. We confirm the final match considering your level and schedule.'},
+  f_field:{ko:'분야',en:'Focus'},
+  f_time:{ko:'시간대',en:'Time'},
+  f_all:{ko:'전체',en:'All'},
+  count:{ko:'명의 선생님',en:' teachers'},
+  t_btn:{ko:'이 선생님과 배우고 싶어요',en:'I want to learn with this teacher'},
+  empty:{ko:'조건에 맞는 선생님이 아직 없습니다. 필터를 바꿔 보세요.',
+         en:'No teachers match these filters yet — try changing them.'},
+  n_title:{ko:'희망 선생님, 이렇게 연결됩니다',en:'How your preferred teacher is matched'},
+  n_1t:{ko:'1. 신청서에 이름 쓰기',en:'1. Write the name on your application'},
+  n_1p:{ko:"학생 신청서의 '희망 선생님' 칸에 선생님 이름을 적습니다. 카드의 주황 버튼을 누르면 안내해 드립니다.",
+        en:"Write the teacher's name in the 'Preferred teacher' field of the application. The orange button on each card will guide you."},
+  n_2t:{ko:'2. 레벨 테스트',en:'2. Level test'},
+  n_2p:{ko:'15분 레벨 테스트로 지금의 한국어 수준을 확인합니다. 희망 선생님과 잘 맞는지 보기 위해서입니다.',
+        en:'A 15-minute level test shows your current Korean level — so we can see how well you fit with your preferred teacher.'},
+  n_3t:{ko:'3. 본부가 최종 확정',en:'3. We confirm the match'},
+  n_3p:{ko:'수준과 시간이 맞으면 희망 선생님과 연결됩니다. 시간이 맞지 않으면 가장 비슷한 선생님을 추천해 드립니다.',
+        en:'If level and schedule fit, you are matched with your preferred teacher. If not, we recommend the most similar teacher.'},
+  ft_desc:{ko:'한국에 온 유학생을 위한 무료 온라인 1:1 한국어 튜터링',
+           en:'Free one-on-one online Korean tutoring for international students in Korea'},
+  ft_contact:{ko:'문의 — <a href="mailto:korean121free@gmail.com">korean121free@gmail.com</a>',
+              en:'Contact — <a href="mailto:korean121free@gmail.com">korean121free@gmail.com</a>'},
+  md_title:{ko:'신청서에 이렇게 적어 주세요',en:'Write this on your application'},
+  md_body:{ko:"신청서의 <b>'희망 선생님'</b> 칸에 위 이름을 그대로 적으시면 됩니다.",
+           en:"Simply write the name above in the <b>'Preferred teacher'</b> field of the application."},
+  md_note:{ko:'시간이 맞지 않으면 비슷한 선생님을 추천해 드려요.',
+           en:"If the schedule doesn't fit, we'll recommend a similar teacher."},
+  md_go:{ko:'신청서 작성하러 가기',en:'Go to application form'},
+  md_close:{ko:'닫기',en:'Close'}
+};
+
+function chipRow(el, defs, cur, onpick){
+  el.innerHTML='';
+  var all=document.createElement('button');
+  all.className='fchip'+(cur==='all'?' on':'');
+  all.textContent=I18N.f_all[LANG];
+  all.onclick=function(){onpick('all');};
+  el.appendChild(all);
+  Object.keys(defs).forEach(function(k){
+    var b=document.createElement('button');
+    b.className='fchip'+(cur===k?' on':'');
+    b.textContent=defs[k][LANG];
+    b.onclick=function(){onpick(k);};
+    el.appendChild(b);
+  });
+}
+
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+function render(){
+  chipRow(document.getElementById('tagChips'), TAGS, curTag, function(k){curTag=k;render();});
+  chipRow(document.getElementById('slotChips'), SLOTS, curSlot, function(k){curSlot=k;render();});
+
+  var list=TEACHERS.filter(function(t){
+    var okT = curTag==='all'  || t.tags.indexOf(curTag)>=0;
+    var okS = curSlot==='all' || t.slots.indexOf(curSlot)>=0;
+    return okT && okS;
+  });
+
+  document.getElementById('countLine').textContent =
+    (LANG==='ko') ? list.length+I18N.count.ko : list.length+I18N.count.en;
+
+  var g=document.getElementById('grid');
+  g.innerHTML='';
+  if(!list.length){
+    var e=document.createElement('div');
+    e.className='empty'; e.textContent=I18N.empty[LANG];
+    g.appendChild(e); return;
+  }
+  list.forEach(function(t){
+    var card=document.createElement('div');
+    card.className='tcard';
+    var face = t.photo
+      ? '<div class="t-face"><img src="'+esc(t.photo)+'" alt=""></div>'
+      : '<div class="t-face" style="background:'+esc(t.color)+'">'+esc(t.init)+'</div>';
+    card.innerHTML =
+      '<div class="t-top">'+face+
+        '<div><div class="t-name">'+esc(t.name[LANG])+'</div>'+
+        '<div class="t-years">'+esc(t.years[LANG])+'</div></div></div>'+
+      '<div class="t-badges">'+t.badges[LANG].map(function(b){return '<span class="t-badge">'+esc(b)+'</span>';}).join('')+'</div>'+
+      '<div class="t-quote">'+esc(t.quote[LANG])+'</div>'+
+      '<p class="t-intro">'+esc(t.intro[LANG])+'</p>'+
+      '<div class="t-tags">'+t.tags.map(function(k){return '<span class="t-tag">'+esc(TAGS[k][LANG])+'</span>';}).join('')+'</div>'+
+      '<div class="t-time"><span class="clock">●</span> '+esc(t.time[LANG])+'</div>';
+    var btn=document.createElement('button');
+    btn.className='t-btn';
+    btn.textContent=I18N.t_btn[LANG];
+    btn.onclick=function(){openApply(t);};
+    card.appendChild(btn);
+    g.appendChild(card);
+  });
+}
+
+function openApply(t){
+  document.getElementById('mName').textContent = t.name.ko;  /* 신청서에는 한국어 이름을 적게 안내 */
+  document.getElementById('mGo').href = APPLY_FORM;
+  document.getElementById('applyModal').style.display='flex';
+}
+function closeApply(){ document.getElementById('applyModal').style.display='none'; }
+document.getElementById('applyModal').addEventListener('click', function(e){
+  if(e.target===this) closeApply();
+});
+
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var key=el.getAttribute('data-i18n');
+    if(I18N[key]) el.innerHTML=I18N[key][LANG];
+  });
+  document.getElementById('langKo').classList.toggle('on', LANG==='ko');
+  document.getElementById('langEn').classList.toggle('on', LANG==='en');
+  render();
+}
+function setLang(l){ LANG=l; applyLang(); }
+
+document.getElementById('samplebar').style.display = SAMPLE ? '' : 'none';
+applyLang();
+</script>
+</body>
+</html>
