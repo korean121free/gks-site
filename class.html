@@ -228,7 +228,8 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
   font-family:inherit; font-size:.9rem; font-weight:700; cursor:pointer;
 }
 #chSend{background:var(--blue); color:#fff}
-#chFileBtn{background:var(--bg2); color:var(--blue-d); border:1px solid var(--line); font-size:1.05rem}
+#chFileBtn,#chVoiceBtn{background:var(--bg2); color:var(--blue-d); border:1px solid var(--line); font-size:1.05rem}
+#chVoiceBtn.on{background:#e05a3a; border-color:#e05a3a}
 .ctl{position:relative}
 .ctl .badge{
   position:absolute; top:1px; right:8px; min-width:17px; height:17px; border-radius:99px;
@@ -445,6 +446,7 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
       <div class="chat-list" id="chList"></div>
       <div class="chat-in">
         <button id="chFileBtn" type="button" onclick="document.getElementById('chFile').click()" title="파일">📎</button>
+        <button id="chVoiceBtn" type="button" onclick="chatVoice()" title="발음 쪽지">🎤</button>
         <textarea id="chIn" rows="1" placeholder="단어나 문장을 적어 주세요" data-i18n-ph="chPh"></textarea>
         <button id="chSend" type="button" onclick="chatSend()" data-i18n="chSendBtn">보내기</button>
       </div>
@@ -643,6 +645,9 @@ var I18N = {
   chSending:{ko:'보내는 중…', en:'Sending…'},
   chGet:{ko:'받기', en:'Save'},
   chNew:{ko:'새 메시지', en:'New message'},
+  chVoiceOn:{ko:'발음을 녹음 중… 🎤를 다시 누르면 보내집니다 (최대 1분)',
+             en:'Recording… press 🎤 again to send (max 1 min)'},
+  chVoiceFail:{ko:'이 브라우저에서는 음성 쪽지가 안 됩니다', en:'Voice notes are not supported in this browser'},
   bdThick:{ko:'굵게', en:'Thick'},
   bdErase:{ko:'지우개', en:'Eraser'},
   bdHl:{ko:'형광펜', en:'Highlight'},
@@ -1814,23 +1819,25 @@ function chatTake(d){
   if(!chatOn) toast('💬 ' + (d.n||'') + ': ' + text.slice(0,40));
 }
 
-/* 파일 말풍선 채우기 — 그림이면 미리 보여줍니다 */
+/* 파일 말풍선 채우기 — 그림은 미리 보이고, 음성은 바로 재생됩니다 */
 function chFill(bub, blob, name){
   var url = URL.createObjectURL(blob);
   var kb = blob.size/1024;
   var sizeTxt = kb >= 1024 ? (kb/1024).toFixed(1)+'MB' : Math.max(1,Math.round(kb))+'KB';
-  var html = '📎 ' + chEsc(name) + ' <span style="opacity:.75;font-size:.8em">(' + sizeTxt + ')</span>'
+  var type = blob.type || '';
+  var ico = type.indexOf('audio/') === 0 ? '🎤' : '📎';
+  var html = ico + ' ' + chEsc(name) + ' <span style="opacity:.75;font-size:.8em">(' + sizeTxt + ')</span>'
            + ' &nbsp;<a href="' + url + '" download="' + chEsc(name) + '">' + t('chGet') + '</a>';
-  if((blob.type||'').indexOf('image/') === 0){ html += '<img src="' + url + '" alt="">'; }
+  if(type.indexOf('image/') === 0){ html += '<img src="' + url + '" alt="">'; }
+  if(type.indexOf('audio/') === 0){
+    html += '<audio controls preload="metadata" style="display:block;width:100%;margin-top:6px;height:32px" src="' + url + '"></audio>';
+  }
   bub.innerHTML = html;
   document.getElementById('chList').scrollTop = document.getElementById('chList').scrollHeight;
 }
 
-/* 파일 보내기 */
-function chatPickFile(input){
-  var f = input.files && input.files[0];
-  input.value = '';
-  if(!f) return;
+/* 파일 보내기 — 고른 파일도, 방금 녹음한 발음 쪽지도 여기로 나갑니다 */
+function chatSendFileObj(f){
   if(!chHasPeer()){ toast(t('chNoPeer')); return; }
   if(f.size > 25*1024*1024){ toast(t('chTooBig')); return; }
   if(!room || !room.localParticipant || typeof room.localParticipant.sendFile !== 'function'){
@@ -1838,6 +1845,7 @@ function chatPickFile(input){
   }
   if(chFileBusy) return;
   chFileBusy = true;
+  if(!chatOn) toggleChat();   /* 보낸 것이 바로 보이도록 */
   var bub = chBubble(true, MYNAME || t('chTitle'));
   bub.textContent = '📎 ' + f.name + ' — ' + t('chSending');
   chSettle();
@@ -1850,6 +1858,72 @@ function chatPickFile(input){
       chFileBusy = false;
       bub.textContent = '📎 ' + f.name + ' — ' + t('chFileFail');
     });
+}
+
+function chatPickFile(input){
+  var f = input.files && input.files[0];
+  input.value = '';
+  if(f) chatSendFileObj(f);
+}
+
+/* ---------- 발음 쪽지 — 짧게 녹음해서 채팅으로 보냅니다 (선생님·학생 모두) ---------- */
+var chVo = null, chVoChunks = [], chVoTimer = null;
+
+function chatVoice(){
+  if(chVo){ chatVoiceStop(); return; }   /* 두 번째 누름 = 보내기 */
+  if(!chHasPeer()){ toast(t('chNoPeer')); return; }
+  if(typeof MediaRecorder === 'undefined'){ toast(t('chVoiceFail')); return; }
+
+  /* 이미 쓰고 있는 마이크를 그대로 씁니다 — 권한 창이 다시 뜨지 않습니다 */
+  var tr = null;
+  try{
+    var pub = room && room.localParticipant.getTrackPublication(LK.Track.Source.Microphone);
+    if(pub && pub.track && pub.track.mediaStreamTrack) tr = pub.track.mediaStreamTrack;
+  }catch(e){}
+
+  function startWith(stream){
+    var mime = ['audio/webm;codecs=opus','audio/webm','audio/mp4']
+      .filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0] || '';
+    try{
+      chVo = new MediaRecorder(stream, mime ? {mimeType:mime, audioBitsPerSecond:32000} : {audioBitsPerSecond:32000});
+    }catch(e){ toast(t('chVoiceFail')); chVo = null; return; }
+    chVoChunks = [];
+    chVo.ondataavailable = function(e){ if(e.data && e.data.size) chVoChunks.push(e.data); };
+    chVo.onstop = chatVoiceSend;
+    chVo.start(250);
+    var b = document.getElementById('chVoiceBtn');
+    b.classList.add('on'); b.textContent = '⏹';
+    toast(t('chVoiceOn'));
+    chVoTimer = setTimeout(chatVoiceStop, 60000);   /* 최대 1분 */
+  }
+
+  if(tr){ startWith(new MediaStream([tr])); }
+  else if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(startWith, function(){ toast(t('chVoiceFail')); });
+  } else { toast(t('chVoiceFail')); }
+}
+
+function chatVoiceStop(){
+  if(chVoTimer){ clearTimeout(chVoTimer); chVoTimer = null; }
+  var b = document.getElementById('chVoiceBtn');
+  b.classList.remove('on'); b.textContent = '🎤';
+  if(chVo && chVo.state !== 'inactive'){ try{ chVo.stop(); }catch(e){} }
+}
+
+function chatVoiceSend(){
+  var mime = (chVo && chVo.mimeType) || 'audio/webm';
+  chVo = null;
+  var blob = new Blob(chVoChunks, { type: mime });
+  chVoChunks = [];
+  if(blob.size < 1500) return;   /* 잘못 눌러 너무 짧으면 보내지 않습니다 */
+  var d = new Date(), p = function(n){ return ('0'+n).slice(-2); };
+  var ext = mime.indexOf('mp4') >= 0 ? 'm4a' : 'webm';
+  var f;
+  try{
+    f = new File([blob], '발음_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()) + '.' + ext,
+                 { type: mime.split(';')[0] });
+  }catch(e){ toast(t('chVoiceFail')); return; }
+  chatSendFileObj(f);
 }
 
 /* 파일 받기 — 방에 연결된 뒤 한 번 등록합니다 */
