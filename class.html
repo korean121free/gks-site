@@ -414,13 +414,26 @@ textarea{font-size:.98rem; min-height:84px; resize:vertical}
         <button class="pen on" id="bdP1" style="background:#1b2436" onclick="bdPen(this,'#1b2436')"></button>
         <button class="pen" style="background:#c0392b" onclick="bdPen(this,'#c0392b')"></button>
         <button class="pen" style="background:#1f6fb2" onclick="bdPen(this,'#1f6fb2')"></button>
+        <button class="pen" style="background:#1e8a4c" onclick="bdPen(this,'#1e8a4c')"></button>
+        <button id="btHl" onclick="bdToggleHl(this)" data-i18n="bdHl">형광펜</button>
         <button id="btThick" onclick="bdToggleThick(this)" data-i18n="bdThick">굵게</button>
         <button id="btErase" onclick="bdToggleErase(this)" data-i18n="bdErase">지우개</button>
+        <button id="btText" onclick="bdToggleText(this)" data-i18n="bdText">글자</button>
+        <button onclick="bdUndo()" data-i18n="bdUndo">되돌리기</button>
+        <button id="btBg" onclick="bdCycleBg()" data-i18n="bgPlain">빈 칠판</button>
         <span class="sp"></span>
-        <button onclick="bdClear()" data-i18n="bdClear">전체 지우기</button>
+        <button onclick="bdPageMove(-1)" aria-label="이전 장">◀</button>
+        <span id="bdPgTxt" style="font-size:.78rem;color:#2e4d8f;font-weight:700">1/3</span>
+        <button onclick="bdPageMove(1)" aria-label="다음 장">▶</button>
+        <button onclick="bdSavePng()" data-i18n="bdSave">저장</button>
+        <button onclick="bdClear()" data-i18n="bdClear">이 장 지우기</button>
         <button onclick="closeBoard(true)" data-i18n="bdClose">칠판 닫기</button>
       </div>
       <canvas id="boardCv"></canvas>
+      <input id="bdTxtIn" class="hidden" autocomplete="off"
+             style="position:absolute; z-index:9; border:2px solid #4472C4; border-radius:8px;
+                    padding:4px 8px; font-family:inherit; background:#fff; color:#1b2436;
+                    font-size:18px; max-width:70%; outline:none;">
     </div>
 
     <!-- 채팅 — 단어·맞춤법을 글로 적어 줍니다. 서버에 남지 않고 두 사람 사이로만 -->
@@ -632,7 +645,14 @@ var I18N = {
   chNew:{ko:'새 메시지', en:'New message'},
   bdThick:{ko:'굵게', en:'Thick'},
   bdErase:{ko:'지우개', en:'Eraser'},
-  bdClear:{ko:'전체 지우기', en:'Clear all'},
+  bdHl:{ko:'형광펜', en:'Highlight'},
+  bdText:{ko:'글자', en:'Text'},
+  bdUndo:{ko:'되돌리기', en:'Undo'},
+  bdSave:{ko:'저장', en:'Save'},
+  bgPlain:{ko:'빈 칠판', en:'Plain'},
+  bgGrid:{ko:'원고지', en:'Squares'},
+  bgLine:{ko:'줄 공책', en:'Lines'},
+  bdClear:{ko:'이 장 지우기', en:'Clear page'},
   bdClose:{ko:'칠판 닫기', en:'Close board'},
   bdOpened:{ko:'칠판을 열었습니다 · 학생 화면에도 함께 열립니다',
             en:'Board opened - it opens on your partner’s screen too'},
@@ -1230,8 +1250,12 @@ function openTab(url){
    붓질은 이미 깔려 있는 통신선으로만 오갑니다. 우리 서버에도 남의 서버에도 남지 않습니다.
    좌표는 0~1 비율로 주고받아서 두 사람 화면 크기가 달라도 같은 자리에 그려집니다. */
 var bdOn = false, bdColor = '#1b2436', bdThickOn = false, bdEraseOn = false;
-var bdStrokes = [];   /* 지금까지의 붓질 — 창 크기가 바뀌면 이걸로 다시 그립니다 */
+var bdHlOn = false, bdTextOn = false;
+var bdPages = [ {list:[], bg:'plain'}, {list:[], bg:'plain'}, {list:[], bg:'plain'} ];
+var bdPage = 0;   /* 지금 보는 장 — 두 사람이 함께 넘어갑니다 */
 var bdCur = null, bdSendAt = 0, bdSeq = 0;
+
+function bdList(){ return bdPages[bdPage].list; }
 
 function bdCv(){ return document.getElementById('boardCv'); }
 
@@ -1241,6 +1265,8 @@ function openBoard(tell){
   document.getElementById('board').classList.remove('hidden');
   document.getElementById('cBoard').classList.add('on');
   bdOn = true;
+  document.getElementById('bdPgTxt').textContent = (bdPage+1) + '/' + bdPages.length;
+  bdBgLabel();
   bdFit();
   if(tell){
     sendData({ t:'bd_open' });
@@ -1265,12 +1291,75 @@ function bdPen(el, c){
   el.classList.add('on');
   document.getElementById('btErase').classList.remove('on');
 }
+function bdModeOff(){   /* 서로 겹치지 않는 도구들을 한 번에 끕니다 */
+  bdEraseOn = false; bdHlOn = false; bdTextOn = false;
+  ['btErase','btHl','btText'].forEach(function(id){ document.getElementById(id).classList.remove('on'); });
+}
 function bdToggleThick(el){ bdThickOn = !bdThickOn; el.classList.toggle('on', bdThickOn); }
-function bdToggleErase(el){ bdEraseOn = !bdEraseOn; el.classList.toggle('on', bdEraseOn); }
+function bdToggleErase(el){ var on = !bdEraseOn; bdModeOff(); bdEraseOn = on; el.classList.toggle('on', on); }
+function bdToggleHl(el){ var on = !bdHlOn; bdModeOff(); bdHlOn = on; el.classList.toggle('on', on); }
+function bdToggleText(el){ var on = !bdTextOn; bdModeOff(); bdTextOn = on; el.classList.toggle('on', on); }
 function bdClear(){
-  bdStrokes = []; bdRedraw();
-  sendData({ t:'bd_clear' });
+  bdPages[bdPage].list = []; bdRedraw();
+  sendData({ t:'bd_clear', pg: bdPage });
   logEvent('board_clear');
+}
+
+/* 되돌리기 — 내가 그은 마지막 것만 취소합니다 (상대 것은 그대로) */
+function bdUndo(){
+  var my = (ROLE === 'teacher' ? 'T' : 'S');
+  var list = bdList();
+  for(var i = list.length - 1; i >= 0; i--){
+    if(String(list[i].id).charAt(0) === my){
+      var id = list[i].id;
+      list.splice(i, 1);
+      bdRedraw();
+      sendData({ t:'bd_undo', id:id, pg:bdPage });
+      return;
+    }
+  }
+}
+function bdDrop(id, pg){
+  var list = (bdPages[pg]||bdPages[0]).list;
+  for(var i = list.length - 1; i >= 0; i--){
+    if(list[i].id === id){ list.splice(i, 1); return; }
+  }
+}
+
+/* 바탕 — 빈 칠판 → 원고지 → 줄 공책. 한글 쓰기 연습용 */
+var BD_BGS = ['plain','grid','line'];
+function bdCycleBg(){
+  var p = bdPages[bdPage];
+  p.bg = BD_BGS[(BD_BGS.indexOf(p.bg) + 1) % BD_BGS.length];
+  bdBgLabel(); bdRedraw();
+  sendData({ t:'bd_bg', bg:p.bg, pg:bdPage });
+}
+function bdBgLabel(){
+  var k = { plain:'bgPlain', grid:'bgGrid', line:'bgLine' }[bdPages[bdPage].bg] || 'bgPlain';
+  document.getElementById('btBg').textContent = t(k);
+}
+
+/* 페이지 — 둘이 같은 장을 봅니다 */
+function bdPageMove(d){ bdSetPage(bdPage + d, true); }
+function bdSetPage(n, tell){
+  n = Math.max(0, Math.min(bdPages.length - 1, n|0));
+  if(n === bdPage && tell) return;
+  bdPage = n;
+  document.getElementById('bdPgTxt').textContent = (n+1) + '/' + bdPages.length;
+  bdBgLabel(); bdRedraw();
+  if(tell) sendData({ t:'bd_pg', n:n });
+}
+
+/* 저장 — 이 장을 그림 파일로 내려받습니다 (학생 복습용) */
+function bdSavePng(){
+  var cv = bdCv();
+  var a = document.createElement('a');
+  var d = new Date(), p = function(x){ return String(x).padStart(2,'0'); };
+  a.download = 'GKS칠판_' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '_' + (bdPage+1) + '장.png';
+  a.href = cv.toDataURL('image/png');
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ a.remove(); }, 1000);
+  logEvent('board_save');
 }
 
 /* 그리기 */
@@ -1286,19 +1375,59 @@ function bdRedraw(){
   var cv = bdCv(), g = cv.getContext('2d');
   g.fillStyle = '#fbfaf7';
   g.fillRect(0, 0, cv.width, cv.height);
-  bdStrokes.forEach(bdPaint);
+  bdPaintBg(g, cv);
+  bdList().forEach(bdPaint);
+}
+
+/* 바탕 무늬 — 원고지 칸, 줄 공책 */
+function bdPaintBg(g, cv){
+  var bg = bdPages[bdPage].bg;
+  if(bg === 'plain') return;
+  g.strokeStyle = '#e2dbc9'; g.lineWidth = 1;
+  if(bg === 'grid'){
+    var cell = cv.width / 12;
+    for(var x = cell; x < cv.width; x += cell){
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, cv.height); g.stroke();
+    }
+    for(var y = cell; y < cv.height; y += cell){
+      g.beginPath(); g.moveTo(0, y); g.lineTo(cv.width, y); g.stroke();
+    }
+  } else if(bg === 'line'){
+    var gap = cv.height / 9;
+    for(var ly = gap; ly < cv.height; ly += gap){
+      g.beginPath(); g.moveTo(0, ly); g.lineTo(cv.width, ly); g.stroke();
+    }
+  }
 }
 
 function bdPaint(s){
-  if(!s || !s.p || s.p.length < 4) return;
+  if(!s) return;
   var cv = bdCv(), g = cv.getContext('2d');
+
+  /* 글자 */
+  if(s.tx){
+    if(!s.txt) return;
+    g.save();
+    g.fillStyle = s.c || '#1b2436';
+    g.font = '700 ' + Math.max(12, (s.sz || 28) * cv.width / 1000) + "px 'Noto Sans KR', sans-serif";
+    g.textBaseline = 'top';
+    g.fillText(s.txt, s.x * cv.width, s.y * cv.height);
+    g.restore();
+    return;
+  }
+
+  if(!s.p || s.p.length < 4) return;
+  g.save();
+  if(s.hl){ g.globalAlpha = 0.35; g.lineCap = 'butt'; }
+  else { g.lineCap = 'round'; }
   g.strokeStyle = s.c;
   g.lineWidth = Math.max(1, s.w * cv.width / 1000);
-  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.lineJoin = 'round';
   g.beginPath();
   g.moveTo(s.p[0] * cv.width, s.p[1] * cv.height);
   for(var i = 2; i < s.p.length; i += 2) g.lineTo(s.p[i] * cv.width, s.p[i+1] * cv.height);
   g.stroke();
+  g.restore();
 }
 
 function bdAt(e){
@@ -1308,15 +1437,17 @@ function bdAt(e){
 
 function bdStart(e){
   if(!bdOn) return;
+  if(bdTextOn){ bdTextAt(e); e.preventDefault(); return; }   /* 글자 도구는 누른 곳에 입력칸 */
   try{ bdCv().setPointerCapture(e.pointerId); }catch(err){}
   var p = bdAt(e);
   bdCur = {
     id: (ROLE === 'teacher' ? 'T' : 'S') + (++bdSeq),
     c: bdEraseOn ? '#fbfaf7' : bdColor,
-    w: bdEraseOn ? 30 : (bdThickOn ? 9 : 4),
+    w: bdEraseOn ? 30 : (bdHlOn ? 18 : (bdThickOn ? 9 : 4)),
     p: [p[0], p[1]]
   };
-  bdStrokes.push(bdCur);
+  if(bdHlOn) bdCur.hl = 1;
+  bdList().push(bdCur);
   e.preventDefault();
 }
 
@@ -1324,7 +1455,7 @@ function bdMove(e){
   if(!bdCur) return;
   var p = bdAt(e);
   bdCur.p.push(p[0], p[1]);
-  bdPaint({ c:bdCur.c, w:bdCur.w, p:bdCur.p.slice(-4) });   /* 방금 그은 마디만 덧그립니다 */
+  bdPaint({ c:bdCur.c, w:bdCur.w, hl:bdCur.hl, p:bdCur.p.slice(-4) });   /* 방금 그은 마디만 덧그립니다 */
   var now = Date.now();
   if(now - bdSendAt > 90){ bdSendAt = now; bdSend(); }
   e.preventDefault();
@@ -1338,25 +1469,62 @@ function bdEnd(){
 
 function bdSend(){
   if(!bdCur) return;
-  sendData({ t:'bd', s:{
+  var s = {
     id: bdCur.id, c: bdCur.c, w: bdCur.w,
     p: bdCur.p.map(function(v){ return Math.round(v * 1000) / 1000; })
-  }});
+  };
+  if(bdCur.hl) s.hl = 1;
+  sendData({ t:'bd', s:s, pg:bdPage });
 }
 
-/* 늦게 연 사람에게 지금까지의 붓질을 나눠 보냅니다 */
+/* 글자 입력 — 누른 곳에 칸이 열리고, Enter로 칠판에 박힙니다 */
+function bdTextAt(e){
+  var inEl = document.getElementById('bdTxtIn');
+  var r = document.getElementById('board').getBoundingClientRect();
+  var p = bdAt(e);
+  inEl.style.left = Math.min(r.width - 120, e.clientX - r.left) + 'px';
+  inEl.style.top  = (e.clientY - r.top) + 'px';
+  inEl.dataset.x = p[0]; inEl.dataset.y = p[1];
+  inEl.value = '';
+  inEl.classList.remove('hidden');
+  inEl.focus();
+}
+function bdTextCommit(){
+  var inEl = document.getElementById('bdTxtIn');
+  var txt = inEl.value.trim();
+  inEl.value = '';                    /* Enter와 blur가 겹쳐도 두 번 박히지 않게 */
+  inEl.classList.add('hidden');
+  if(!txt) return;
+  var s = {
+    id: (ROLE === 'teacher' ? 'T' : 'S') + (++bdSeq),
+    tx: 1, txt: txt.slice(0, 80), c: bdColor,
+    sz: bdThickOn ? 46 : 28,
+    x: Math.round(inEl.dataset.x * 1000) / 1000,
+    y: Math.round(inEl.dataset.y * 1000) / 1000
+  };
+  bdList().push(s);
+  bdRedraw();
+  sendData({ t:'bd', s:s, pg:bdPage });
+}
+
+/* 늦게 연 사람에게 지금까지의 것(모든 장 + 바탕 + 지금 장)을 나눠 보냅니다 */
 function bdSync(){
-  for(var i = 0; i < bdStrokes.length; i += 15){
-    sendData({ t:'bd_sync', list: bdStrokes.slice(i, i + 15) });
-  }
+  bdPages.forEach(function(pgObj, n){
+    for(var i = 0; i < pgObj.list.length; i += 12){
+      sendData({ t:'bd_sync', list: pgObj.list.slice(i, i + 12), pg:n });
+    }
+    if(pgObj.bg !== 'plain') sendData({ t:'bd_bg', bg:pgObj.bg, pg:n });
+  });
+  if(bdPage) sendData({ t:'bd_pg', n:bdPage });
 }
 
-function bdTake(s){
+function bdTake(s, pg){
   if(!s || !s.id) return;
-  for(var i = bdStrokes.length - 1; i >= 0; i--){
-    if(bdStrokes[i].id === s.id){ bdStrokes[i] = s; return; }
+  var list = (bdPages[pg]||bdPages[0]).list;
+  for(var i = list.length - 1; i >= 0; i--){
+    if(list[i].id === s.id){ list[i] = s; return; }
   }
-  bdStrokes.push(s);
+  list.push(s);
 }
 
 (function bdInit(){
@@ -1367,6 +1535,12 @@ function bdTake(s){
   cv.addEventListener('pointerup', bdEnd);
   cv.addEventListener('pointercancel', bdEnd);
   window.addEventListener('resize', function(){ if(bdOn) bdFit(); });
+  var ti = document.getElementById('bdTxtIn');
+  ti.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.isComposing && e.keyCode !== 229){ e.preventDefault(); bdTextCommit(); }
+    if(e.key === 'Escape'){ ti.value = ''; ti.classList.add('hidden'); }
+  });
+  ti.addEventListener('blur', bdTextCommit);
 })();
 
 /* ---------- 녹화 — 선생님 컴퓨터에만 저장됩니다 ----------
@@ -1773,16 +1947,23 @@ function onData(payload){
   /* 칠판 */
   if(d.t === 'bd_open' && !bdOn){ openBoard(false); }
   if(d.t === 'bd_close' && bdOn){ closeBoard(false); }
-  if(d.t === 'bd_clear'){ bdStrokes = []; if(bdOn) bdRedraw(); }
+  if(d.t === 'bd_clear'){ (bdPages[d.pg||0]||bdPages[0]).list = []; if(bdOn) bdRedraw(); }
   if(d.t === 'bd' && d.s){
-    bdTake(d.s);
+    bdTake(d.s, d.pg||0);
     if(!bdOn) openBoard(false);
     bdRedraw();
   }
   if(d.t === 'bd_sync' && d.list && d.list.length){
-    d.list.forEach(bdTake);
+    var _pg = d.pg||0;
+    d.list.forEach(function(s){ bdTake(s, _pg); });
     if(!bdOn) openBoard(false);
     bdRedraw();
+  }
+  if(d.t === 'bd_undo' && d.id){ bdDrop(d.id, d.pg||0); if(bdOn) bdRedraw(); }
+  if(d.t === 'bd_pg'){ bdSetPage(d.n||0, false); if(!bdOn) openBoard(false); }
+  if(d.t === 'bd_bg'){
+    (bdPages[d.pg||0]||bdPages[0]).bg = d.bg || 'plain';
+    if(bdOn){ bdBgLabel(); bdRedraw(); }
   }
 
   if(d.t === 'photo_no' && ROLE === 'teacher'){
